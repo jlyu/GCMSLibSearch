@@ -22,6 +22,7 @@ protected:
 
 private:
 	void initListCtrl();
+	void clearList();
 
 	CListCtrl _compoundList;
 	std::vector<Compound> _compounds;
@@ -39,6 +40,7 @@ protected:
 public:
 	static CSearchResultView* getInstance();
 
+	afx_msg void OnNMClickCompoundList(NMHDR *pNMHDR, LRESULT *pResult);
 };
 
 

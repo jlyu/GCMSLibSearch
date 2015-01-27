@@ -46,13 +46,8 @@ void CSearchResultView::DoDataExchange(CDataExchange* pDX)
 
 BEGIN_MESSAGE_MAP(CSearchResultView, CDialog)
 	ON_BN_CLICKED(IDCANCEL, &CSearchResultView::OnBnClickedCancel)
+	ON_NOTIFY(NM_CLICK, IDC_COMPOUND_LIST, &CSearchResultView::OnNMClickCompoundList)
 END_MESSAGE_MAP()
-
-
-// CSearchResultView 消息处理程序
-void CSearchResultView::OnBnClickedCancel() {
-	CDialog::OnCancel();
-}
 
 
 void CSearchResultView::initListCtrl() {
@@ -69,16 +64,21 @@ void CSearchResultView::initListCtrl() {
 	_compoundList.InsertColumn(5, _T("匹配度"), LVCFMT_LEFT,50);
 }
 
+void CSearchResultView::clearList() {
+	_compoundList.DeleteAllItems();
+}
+
 
 void CSearchResultView::fillCompoundList(const std::vector<Compound> &compounds) {
 
+	clearList();
 	_compounds = compounds;
 
 	const int listRows = compounds.size();
 	const int listCols = 5;
 	for (int row = 0; row < listRows; row++) {
 
-		
+
 		CString strCompound[listCols];
 		strCompound[0].Format(_T("%d"), compounds[row]._compoundID);
 		strCompound[1] = compounds[row]._compoundName.c_str();
@@ -91,4 +91,19 @@ void CSearchResultView::fillCompoundList(const std::vector<Compound> &compounds)
 			_compoundList.SetItemText(row, col, strCompound[col]);
 		}
 	}
+}
+
+// CSearchResultView 消息处理程序
+void CSearchResultView::OnBnClickedCancel() {
+	CDialog::OnCancel();
+}
+
+
+void CSearchResultView::OnNMClickCompoundList(NMHDR *pNMHDR, LRESULT *pResult) {
+
+	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
+	 
+
+
+	*pResult = 0;
 }

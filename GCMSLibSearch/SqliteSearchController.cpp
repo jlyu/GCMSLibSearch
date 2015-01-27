@@ -34,7 +34,7 @@ void SqliteSearchController::queryCompoundData(std::vector<Compound> &selectedCo
 	if (!connectSQLite()) { return; }
 
 	if (!selectedCompounds.empty()) { selectedCompounds.clear(); }
-	//std::vector<Compound> selectedCompounds;
+
 
 	//TODO: 实际检索数据代替随机测试数据
 	int randomID[20] = { 0 };
