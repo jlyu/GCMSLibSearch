@@ -1,6 +1,6 @@
 #pragma once
-
 #include "sqlite3.h"
+#include "Compound.h"
 
 #if defined(DEBUG) || defined(_DEBUG)
 #pragma comment(lib, "sqlite3_D.lib")
@@ -20,7 +20,7 @@ public:
 	void closeSQLite();
 
 	void queryCompoundData();
-	void getCompound(int compoundID);
+	Compound getCompound(int compoundID);
 
 
 private:

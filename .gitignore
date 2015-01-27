@@ -4,12 +4,13 @@
 # User-specific files
 *.suo
 *.user
-*.sln.docstates
+*.sln
+*.docstates
 
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
-#[Rr]elease/
+[Rr]elease/
 [Rr]eleases/
 x64/
 x86/
@@ -54,13 +55,10 @@ dlldata.c
 *.log
 *.vspscc
 *.vssscc
-.builds
+*.builds
 *.pidb
 *.svclog
 *.scc
-
-# Chutzpah Test files
-_Chutzpah*
 
 # Visual C++ cache files
 ipch/
