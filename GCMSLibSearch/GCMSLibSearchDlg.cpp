@@ -9,6 +9,7 @@
 
 #include "SearchResultView.h"
 #include "SqliteSearchController.h"
+#include "Compound.h"
 
 
 #include <vector>
@@ -186,15 +187,19 @@ void CGCMSLibSearchDlg::OnBnLoadTestingPeakData() {
 
 void CGCMSLibSearchDlg::OnBnShowSearchResult()
 {
+	
+	std::vector<Compound> compounds;
+
 	//¿ªÊ¼Æ×¿âËÑË÷Âß¼­
 	SqliteSearchController sqliteController;
-	sqliteController.queryCompoundData();
+	sqliteController.queryCompoundData(compounds);
 
 	//
 
 
-	//CSearchResultView *pSearchResultDlg = CSearchResultView::getInstance();
-	//pSearchResultDlg->ShowWindow(SW_SHOW);
+	CSearchResultView *pSearchResultDlg = CSearchResultView::getInstance();
+	pSearchResultDlg->fillCompoundList(compounds);
+	pSearchResultDlg->ShowWindow(SW_SHOW);
 
 
 }

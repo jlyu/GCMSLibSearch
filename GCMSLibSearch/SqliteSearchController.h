@@ -19,7 +19,7 @@ public:
 	bool connectSQLite();
 	void closeSQLite();
 
-	void queryCompoundData();
+	void queryCompoundData(std::vector<Compound> &selectedCompounds);
 	Compound getCompound(int compoundID);
 
 

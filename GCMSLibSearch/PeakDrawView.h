@@ -1,5 +1,6 @@
 #pragma once
 #include "SuperChartLib.h"
+#include <iostream>
 #include <vector>
 
 class CPeakDrawView {

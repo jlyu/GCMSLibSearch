@@ -1,8 +1,8 @@
 #pragma once
 #include <iostream>
 
-class Compound
-{
+class Compound {
+
 public:
 	Compound(void);
 	virtual ~Compound(void);

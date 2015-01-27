@@ -29,18 +29,21 @@ bool SqliteSearchController::connectSQLite() {
 	return true;
 }
 
-void SqliteSearchController::queryCompoundData() {
+void SqliteSearchController::queryCompoundData(std::vector<Compound> &selectedCompounds) {
 
 	if (!connectSQLite()) { return; }
+
+	if (!selectedCompounds.empty()) { selectedCompounds.clear(); }
+	//std::vector<Compound> selectedCompounds;
 
 	//TODO: 实际检索数据代替随机测试数据
 	int randomID[20] = { 0 };
 	srand((unsigned)time(NULL));
 	for (int i = 0; i < sizeof(randomID) / sizeof(int); i++) {
 		randomID[i] = rand() % 191436 + 1;
-	}
-	
-	Compound compound = getCompound(6);
+		Compound aCompound = getCompound(randomID[i]);
+		selectedCompounds.push_back(aCompound);
+	}	
 	
 	closeSQLite();
 	return;
