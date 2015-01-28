@@ -1,9 +1,11 @@
 // SearchResultView.cpp : 实现文件
 
 #include "stdafx.h"
+#include "afxdialogex.h"
+
 #include "GCMSLibSearch.h"
 #include "SearchResultView.h"
-#include "afxdialogex.h"
+
 
 CSearchResultView* CSearchResultView::_pInstance = NULL;
 
@@ -68,6 +70,9 @@ void CSearchResultView::clearList() {
 	_compoundList.DeleteAllItems();
 }
 
+void CSearchResultView::setNofityObject(CGCMSLibSearchDlg* pDlg) {
+	_pGCMSLibSearchDlg = pDlg;
+}
 
 void CSearchResultView::fillCompoundList(const std::vector<Compound> &compounds) {
 
@@ -102,8 +107,28 @@ void CSearchResultView::OnBnClickedCancel() {
 void CSearchResultView::OnNMClickCompoundList(NMHDR *pNMHDR, LRESULT *pResult) {
 
 	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
-	 
+	UpdateData(TRUE);
+	POSITION pos = _compoundList.GetFirstSelectedItemPosition();
+	if (pos) {
+		//pos = _compoundList.GetSelectedItemPosition();
+		int nItem = _compoundList.GetSelectionMark();
+		CString strCompoundID = _compoundList.GetItemText(nItem, 0);
+		int compoundID = _ttoi(strCompoundID);
 
+		CString strPeakData = _T("");
+		for (int i = 0; i != _compounds.size(); i++) {
+			if (_compounds[i]._compoundID == compoundID) {
+				strPeakData = _compounds[i]._peakData.c_str();
+				break;
+			}
+		}
+		
+		_pGCMSLibSearchDlg->drawPeakCompare(strPeakData);
 
+		//int nItemIndex = _compoundList.GetNextSelectedItem(pos);
+	}
+	UpdateData(FALSE);
 	*pResult = 0;
 }
+
+

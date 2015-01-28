@@ -7,9 +7,9 @@
 #include "GCMSLibSearch.h"
 #include "GCMSLibSearchDlg.h"
 
-#include "SearchResultView.h"
+
 #include "SqliteSearchController.h"
-#include "Compound.h"
+
 
 
 #include <vector>
@@ -166,14 +166,16 @@ void CGCMSLibSearchDlg::OnCancel() {
 }
 
 void CGCMSLibSearchDlg::init() {
-	CRect rcPeak; //, rcContrast;
+	CRect rcPeak, rcCompare;
 	GetDlgItem(IDC_PEAK)->GetWindowRect(rcPeak);
 	ScreenToClient(rcPeak);
-	////GetDlgItem(IDC_CONTRAST)->GetWindowRect(rcContrast);
-	////ScreenToClient(rcContrast);
+	GetDlgItem(IDC_PEAK_COMPARE)->GetWindowRect(rcCompare);
+	ScreenToClient(rcCompare);
 
 	_peakChart.Create(this, rcPeak, 0, WS_CHILD|WS_VISIBLE);
-	_peakDrawView.setChartCtrl(&_peakChart);
+	_compareChart.Create(this, rcCompare, 0, WS_CHILD|WS_VISIBLE);
+
+	_peakDrawView.setChartCtrl(&_peakChart, &_compareChart);
 }
 
 void CGCMSLibSearchDlg::OnBnLoadTestingPeakData() {
@@ -184,10 +186,13 @@ void CGCMSLibSearchDlg::OnBnLoadTestingPeakData() {
 
 }
 
+void CGCMSLibSearchDlg::drawPeakCompare(const CString &strPeakData) {
+	_peakDrawView.drawPeakCompare(strPeakData);
+}
+
 
 void CGCMSLibSearchDlg::OnBnShowSearchResult()
 {
-	
 	std::vector<Compound> compounds;
 
 	//¿ªÊ¼Æ×¿âËÑË÷Âß¼­
@@ -196,10 +201,11 @@ void CGCMSLibSearchDlg::OnBnShowSearchResult()
 
 	//
 
-
 	CSearchResultView *pSearchResultDlg = CSearchResultView::getInstance();
 	pSearchResultDlg->fillCompoundList(compounds);
+	pSearchResultDlg->setNofityObject(this);
 	pSearchResultDlg->ShowWindow(SW_SHOW);
 
-
 }
+
+

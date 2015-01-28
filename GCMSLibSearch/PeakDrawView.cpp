@@ -4,7 +4,6 @@
 
 CPeakDrawView::CPeakDrawView(void) {
 	_pPeakChart = NULL;
-	_pPeakLine = NULL;
 }
 
 
@@ -14,15 +13,16 @@ CPeakDrawView::~CPeakDrawView(void)
 }
 
 
-VOID CPeakDrawView::setChartCtrl(CSuperChartCtrl* p) {
+VOID CPeakDrawView::setChartCtrl(CSuperChartCtrl* upChartCtrl, CSuperChartCtrl* downChartCtrl) {
 	
-	if ( (p != NULL) && (p != _pPeakChart) ) {
-		_pPeakChart = p;
-
-		if (_pPeakLine == NULL) {
-			_pPeakLine = _pPeakChart->RealDraw(); //创建波峰标点
-		}
+	if ( (upChartCtrl != NULL) && (upChartCtrl != _pPeakChart) ) {
+		_pPeakChart = upChartCtrl;
 	}
+
+	if ( (downChartCtrl != NULL) && (downChartCtrl != _pCompareChart) ) {
+		_pCompareChart = downChartCtrl;
+	}
+
 }
 
 void CPeakDrawView::parsePeakData(const CString &strPeakData, std::vector<std::pair<int, int> > &peakData) {
@@ -97,4 +97,57 @@ VOID CPeakDrawView::drawPeak(const CString &strPeakData) {
 	pAxisSelect->SetVisible(true);
 	_pPeakChart->EnableRefresh(true);
 	_pPeakChart->RefreshCtrl();	
+}
+
+VOID CPeakDrawView::drawPeakCompare(const CString &strPeakData) {
+
+	dropPeakCompare();
+
+	std::vector<std::pair<int, int> > peakData;
+	parsePeakData(strPeakData, peakData);
+
+	_pCompareChart->EnableRefresh(false);
+
+	double min_x = 0.0;
+	double max_x = 0.0;
+	double min_y = 0.0;
+	double max_y = 0.0;
+
+	// 绘制丰图
+	for (int i=0; i != peakData.size(); i++) {
+
+		CChartLineSerie* line;  
+		line = _pCompareChart->CreateLineSerie();
+		line->SetColor(RGB(210, 0, 0));
+		line->m_vPoints.InitPoints(4);
+
+		double dx[] = { (double)peakData[i].first, (double)peakData[i].first };
+		double dy[] = {  0.0f, (double)peakData[i].second };
+
+		line->m_vPoints.AddPoints(dx, dy, 2);
+
+		if (peakData[i].first > max_x) { max_x = peakData[i].first; }
+		if (peakData[i].second > max_y) { max_y = peakData[i].second; }
+	}
+
+	CChartAxis* pAxisSelect;
+	_pCompareChart->SetBackColor(RGB(235, 235, 235)); //设置背景颜色
+
+	pAxisSelect = _pCompareChart->GetLeftAxis(); //设置Y坐标
+	if (pAxisSelect == NULL) return;
+	pAxisSelect->SetAutomatic(false);
+	pAxisSelect->SetCoordinate(min_y, max_y * 1.1, COORDINATE_SET);
+
+	pAxisSelect = _pCompareChart->GetBottomAxis(); //设置X坐标
+	if (pAxisSelect == NULL) return;
+	pAxisSelect->SetAutomatic(false);
+	pAxisSelect->SetCoordinate(min_x, max_x * 1.1, COORDINATE_SET);
+
+	pAxisSelect->SetVisible(true);
+	_pCompareChart->EnableRefresh(true);
+	_pCompareChart->RefreshCtrl();	
+}
+
+VOID CPeakDrawView::dropPeakCompare() {
+	_pCompareChart->ClearChartData();
 }

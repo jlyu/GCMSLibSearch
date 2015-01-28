@@ -2,7 +2,8 @@
 #pragma once
 
 #include "PeakDrawView.h"
-
+#include "Compound.h"
+#include "SearchResultView.h"
 
 
 // CGCMSLibSearchDlg ¶Ô»°¿ò
@@ -33,8 +34,10 @@ protected:
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
 
+
 private:
-	CSuperChartCtrl  _peakChart; 
+	CSuperChartCtrl _peakChart; 
+	CSuperChartCtrl _compareChart;
 
 	CPeakDrawView _peakDrawView;
 	
@@ -42,4 +45,6 @@ private:
 public:
 	afx_msg void OnBnLoadTestingPeakData();
 	afx_msg void OnBnShowSearchResult();
+
+	void drawPeakCompare(const CString &strPeakData);
 };

@@ -1,13 +1,23 @@
 #pragma once
 #include "afxcmn.h"
 #include "Compound.h"
+#include "GCMSLibSearchDlg.h"
+
 #include <vector>
 
+class CGCMSLibSearchDlg;
 
 // CSearchResultView 对话框
 
 class CSearchResultView : public CDialogEx
 {
+//单例模式
+protected:
+	static CSearchResultView* _pInstance;
+public:
+	static CSearchResultView* getInstance();
+	
+
 	DECLARE_DYNAMIC(CSearchResultView)
 	enum { IDD = IDD_SEARCH_RESULT_VIEW };
 
@@ -26,21 +36,16 @@ private:
 
 	CListCtrl _compoundList;
 	std::vector<Compound> _compounds;
-
+	CGCMSLibSearchDlg* _pGCMSLibSearchDlg; //TODO: 换成观察者模式
 
 public:
 	afx_msg void OnBnClickedCancel();
-	void fillCompoundList(const std::vector<Compound> &compounds);
-
-
-
-//单例模式
-protected:
-	static CSearchResultView* _pInstance;
-public:
-	static CSearchResultView* getInstance();
-
 	afx_msg void OnNMClickCompoundList(NMHDR *pNMHDR, LRESULT *pResult);
+	void fillCompoundList(const std::vector<Compound> &compounds);
+	void setNofityObject(CGCMSLibSearchDlg* pDlg); //TODO: 换成观察者模式
+
+	
+
 };
 
 
