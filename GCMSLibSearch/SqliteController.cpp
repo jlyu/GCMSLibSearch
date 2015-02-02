@@ -1,20 +1,35 @@
-#include "StdAfx.h"
-#include "SqliteSearchController.h"
+//#include "StdAfx.h"
+
 #include <iostream>
 #include <vector>
 #include "time.h"
 
-SqliteSearchController::SqliteSearchController(void) {
+//#include "match.h"
+
+#include "SqliteController.h"
+
+SqliteController::SqliteController(void) {
 	_ppDB = NULL;
 }
 
 
-SqliteSearchController::~SqliteSearchController(void)
-{
+SqliteController::~SqliteController(void) { }
+
+bool SqliteController::openSQLiteDB(const std::string &dbName) {
+	int result = sqlite3_open(dbName.c_str(), &_ppDB);
+	if (result != SQLITE_OK) {
+		fprintf(stderr, "can't open db!\n", sqlite3_errmsg(_ppDB));
+		sqlite3_close(_ppDB);
+		exit(1);
+		return false;
+	}
+
+	printf("db open successfully!\n");
+	return true;
 }
 
 
-bool SqliteSearchController::connectSQLite() {
+bool SqliteController::connectSQLite() {
 
 	int result = sqlite3_open("..//ms.db", &_ppDB);
 
@@ -29,7 +44,7 @@ bool SqliteSearchController::connectSQLite() {
 	return true;
 }
 
-void SqliteSearchController::queryCompoundData(std::vector<Compound> &selectedCompounds) {
+void SqliteController::queryCompoundData(std::vector<Compound> &selectedCompounds) {
 
 	if (!connectSQLite()) { return; }
 
@@ -49,7 +64,7 @@ void SqliteSearchController::queryCompoundData(std::vector<Compound> &selectedCo
 	return;
 }
 
-Compound SqliteSearchController::getCompound(int compoundID) {
+Compound SqliteController::getCompound(int compoundID) {
 
 	Compound aCompound;
 	int rc = 0;
@@ -59,14 +74,14 @@ Compound SqliteSearchController::getCompound(int compoundID) {
 	rc = sqlite3_prepare(_ppDB, query.c_str(), query.size(), &stmt, NULL);
 	if (rc != SQLITE_OK) {
 
-		std::cerr << "sqlite3_prepare[" << rc << "] " << sqlite3_errmsg(_ppDB) << " " << sqlite3_errcode(_ppDB) << std::endl << query << std::endl;
+		std::cerr << "sqlite3_prepare[" << rc << "] " << sqlite3_errmsg(_ppDB) << " " << sqlite3_errcode(_ppDB) << std::endl;
 		sqlite3_finalize(stmt);
 		return aCompound;
 	}
 
 	rc = sqlite3_bind_int(stmt, 1, compoundID);
 	if (rc != SQLITE_OK) {
-		std::cerr << "sqlite3_bind_int[" << rc << "] " << sqlite3_errmsg(_ppDB) << " " << sqlite3_errcode(_ppDB) << std::endl << query << std::endl;
+		std::cerr << "sqlite3_bind_int[" << rc << "] " << sqlite3_errmsg(_ppDB) << " " << sqlite3_errcode(_ppDB) << std::endl;
 		sqlite3_finalize(stmt);
 		return aCompound;
 	}
@@ -90,7 +105,7 @@ Compound SqliteSearchController::getCompound(int compoundID) {
 }
 
 
-void SqliteSearchController::closeSQLite() {
+void SqliteController::closeSQLite() {
 	if (_ppDB) {
 		sqlite3_close(_ppDB);
 	}

@@ -54,13 +54,16 @@
     <ClInclude Include="SearchResultView.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="SqliteSearchController.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="sqlite3.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Compound.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="match.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SqliteController.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -80,11 +83,11 @@
     <ClCompile Include="SearchResultView.cpp">
       <Filter>源文件\View</Filter>
     </ClCompile>
-    <ClCompile Include="SqliteSearchController.cpp">
-      <Filter>源文件\Control</Filter>
-    </ClCompile>
     <ClCompile Include="Compound.cpp">
       <Filter>源文件\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="SqliteController.cpp">
+      <Filter>源文件\Control</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

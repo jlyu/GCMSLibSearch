@@ -21,13 +21,7 @@ private:
 	void parsePeakData(const CString &strPeakData, std::vector<std::pair<int, int> > &peakData); // TODO： 考虑作成缓存
 
 private:
-	CSuperChartCtrl* _pPeakChart;    //上：质谱图
-	CSuperChartCtrl* _pCompareChart; //下：对比图
-
-	//CChartLineSerie* _pPeakLine; //丰图
-	
-	
-
-
+	CSuperChartCtrl* _pPeakChart;     //上：质谱图
+	CSuperChartCtrl* _pCompareChart;  //下：对比图
 };
 

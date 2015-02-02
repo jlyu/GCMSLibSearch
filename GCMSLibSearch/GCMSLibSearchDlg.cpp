@@ -8,7 +8,7 @@
 #include "GCMSLibSearchDlg.h"
 
 
-#include "SqliteSearchController.h"
+#include "SqliteController.h"
 
 
 
@@ -196,7 +196,7 @@ void CGCMSLibSearchDlg::OnBnShowSearchResult()
 	std::vector<Compound> compounds;
 
 	//¿ªÊ¼Æ×¿âËÑË÷Âß¼­
-	SqliteSearchController sqliteController;
+	SqliteController sqliteController;
 	sqliteController.queryCompoundData(compounds);
 
 	//

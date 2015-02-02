@@ -1,4 +1,5 @@
 #pragma once
+
 #include "sqlite3.h"
 #include "Compound.h"
 
@@ -9,12 +10,19 @@
 #endif
 
 
+#define DEFAULT_SQLITE_DB  "ms.db"
 
-class SqliteSearchController
+
+
+class SqliteController
 {
 public:
-	SqliteSearchController(void);
-	~SqliteSearchController(void);
+	SqliteController(void);
+	~SqliteController(void);
+
+//½Ó¿Ú
+	bool openSQLiteDB(const std::string &dbName = DEFAULT_SQLITE_DB);
+
 
 	bool connectSQLite();
 	void closeSQLite();
