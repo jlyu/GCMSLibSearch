@@ -41,7 +41,7 @@ public:
 
 private:
 	bool init_openSQLite(const std::string &file);
-
+	int query_aSingleCount(sqlite3_stmt* pStatement);
 
 private:
 	sqlite3* _ppDB;

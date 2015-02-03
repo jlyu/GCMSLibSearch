@@ -12,6 +12,7 @@ Access 数据库文件 ms.accdb 另存为 ms.mdb
 Provider=Microsoft.Jet.OLEDB.4.0;Data Source=E:\XKTV_2012_0515.mdb;Persist Security Info=False
 
 #### 使用SuperChart控件
+```
 #include "SuperChartLib.h"
 //#include "SHP_Public.h"
 //#include "ViewXML\PAInformation.h"
@@ -20,6 +21,7 @@ Provider=Microsoft.Jet.OLEDB.4.0;Data Source=E:\XKTV_2012_0515.mdb;Persist Secur
 #else
 #pragma comment (lib, "SuperChartCtrl_R.lib")
 #endif
+```
 系统配置要把 v100 -> v90
 
 #### Debug -> Release 版

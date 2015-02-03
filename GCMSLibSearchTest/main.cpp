@@ -25,10 +25,22 @@ void parsePeakData(const std::string& strPeakData, int peakCount, unsigned int *
 	}
 }
 
-void test_totalCompoundCounts(SqliteController *pSqlController) {
-	std::cout << pSqlController->totalCompoundCounts();
+// Unit Test
+bool test_totalCompoundCounts(SqliteController *pSqlController) {
+	if (pSqlController) {
+		std::cout << pSqlController->totalCompoundCounts() << std::endl;
+		return true;
+	} 
+	return false;
 }
-void test_getCompounds(SqliteController *pSqlController) {
+bool test_maxPeakCount(SqliteController *pSqlController) {
+	if (pSqlController) {
+		std::cout << pSqlController->maxPeakCount() << std::endl;
+		return true;
+	} 
+	return false;
+}
+bool test_getCompounds(SqliteController *pSqlController) {
 	for (int page = 0; page < 300; page++) {
 		int limit = 5;
 		std::vector<Compound> compounds = pSqlController->getCompounds(123450 + page * limit, limit);
@@ -38,8 +50,9 @@ void test_getCompounds(SqliteController *pSqlController) {
 		}
 		std::cout << "--- P" << page << "----------------" << std::endl; 
 	}
+	return true;
 }
-void test_storeCompound(SqliteController *pSqlController) {
+bool test_storeCompound(SqliteController *pSqlController) {
 	Compound aCompound = pSqlController->getCompound(2);
 	aCompound.print();
 	std::cout << "---------------------" << std::endl; 
@@ -54,8 +67,9 @@ void test_storeCompound(SqliteController *pSqlController) {
 	pSqlController->storeCompound(aCompound);
 	aCompound = pSqlController->getCompound(2);
 	aCompound.print();
+	return true;
 }
-void test_diffSpectrum(SqliteController *pSqlController, int times) {
+bool test_diffSpectrum(SqliteController *pSqlController, int times) {
 /************************************************************************/
 /* 功能：谱图对比
    参数：
@@ -71,7 +85,7 @@ void test_diffSpectrum(SqliteController *pSqlController, int times) {
    说明：输入的Mass_Match和Mass_Lib需要是质量数从小到大排列。
 */
 /************************************************************************/
-	Compound testCompound = pSqlController->getCompound(4);
+	Compound testCompound = pSqlController->getCompound(4); //190790
 
 	const int matchPeakCount = testCompound._peakCount;
 	unsigned int* matchMass = new unsigned int[matchPeakCount];
@@ -80,6 +94,10 @@ void test_diffSpectrum(SqliteController *pSqlController, int times) {
 	parsePeakData(strPeakData, matchPeakCount, matchMass, matchAbundance);
 
 	// test -10000 times
+	const int maxPeakCount = pSqlController->maxPeakCount();
+	unsigned int* libMass = new unsigned int[maxPeakCount];
+	float* libAbundance = new float[maxPeakCount];
+
 	const int limit = 100;
 	const int pages = times / limit;
 	for (int page = 0; page < pages; page++) {
@@ -88,8 +106,7 @@ void test_diffSpectrum(SqliteController *pSqlController, int times) {
 
 		for (size_t i = 0; i < compounds.size(); i++) {
 			const int libPeakCount = compounds[i]._peakCount;
-			unsigned int* libMass = new unsigned int[libPeakCount];
-			float* libAbundance = new float[libPeakCount];
+			
 			const std::string strLibPeakData = compounds[i]._peakData;
 			parsePeakData(strLibPeakData, libPeakCount, libMass, libAbundance);
 
@@ -99,13 +116,17 @@ void test_diffSpectrum(SqliteController *pSqlController, int times) {
 			//std::cout << "[" << compounds[i]._compoundID << "]: " << matchedDegree << std::endl;
 
 
-			delete [] libMass;
-			delete [] libAbundance;
+			//delete [] libMass;
+			//delete [] libAbundance;
 		}
 	}
 
-	delete [] matchMass;
+	delete [] libAbundance;
+	delete [] libMass;
 	delete [] matchAbundance;
+	delete [] matchMass;
+	
+	return true;
 }
 
 int main() {
@@ -113,10 +134,13 @@ int main() {
 	SqliteController sqlController("../ms.db");
 
 	double timeStart = (double)clock(); 
+
 	//test_diffSpectrum(&sqlController, 10000); // 4200ms
-	test_diffSpectrum(&sqlController, 100000); // 293-297s -> 279-325s
+	test_diffSpectrum(&sqlController, 100000); // 293-297s -> 279-325s -> 323s
+	//test_maxPeakCount(&sqlController); //1233
+
+
 	double timeFinish = (double)clock(); //结束时间
-	
 	std::cout << "run time: " << (timeFinish - timeStart) << std::endl;
 	system("PAUSE");
 	return 0;
