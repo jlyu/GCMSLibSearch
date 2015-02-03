@@ -6,9 +6,10 @@
 
 
 #define COUNT_TOTAL_ROWS  0
-#define FIND_COMPOUND_BY_ID 1
-#define FIND_COMPOUND_BY_RANK 2
-#define STORE_COMPOUND_DATA 3
+#define MAX_PEAK_COUNT 1
+#define FIND_COMPOUND_BY_ID 2
+#define FIND_COMPOUND_BY_RANK 3
+#define STORE_COMPOUND_DATA 4
 
 
 // -init & deinit
@@ -74,6 +75,11 @@ int SqliteController::totalCompoundCounts() {
 	sqlite3_reset(statement);
 	return count;
 }
+int SqliteController::maxPeakCount() {
+	int count = 0;
+
+	return count;
+}
 Compound SqliteController::getCompound(int compoundID) {
 
 	Compound aCompound;
@@ -120,6 +126,7 @@ std::vector<Compound> SqliteController::getCompounds(int startCompoundID, int li
 		aCompound._peakData = (const char*)sqlite3_column_text(statement, 7); // Col 6 = `Comment`
 		compounds.push_back(aCompound);
 	}
+
 	sqlite3_reset(statement);
 	return compounds;
 }
@@ -134,8 +141,7 @@ void SqliteController::storeCompound(const Compound& aCompound) {
 		(sqlite3_bind_int(statement,  4, aCompound._massWeight) == SQLITE_OK) &&
 		(sqlite3_bind_text(statement, 5, aCompound._casNo.c_str(), -1, SQLITE_STATIC) == SQLITE_OK) &&
 		(sqlite3_bind_int(statement,  6, aCompound._peakCount) == SQLITE_OK) &&
-		(sqlite3_bind_text(statement, 7, aCompound._peakData.c_str(), -1, SQLITE_STATIC) == SQLITE_OK) 
-	   ) {
+		(sqlite3_bind_text(statement, 7, aCompound._peakData.c_str(), -1, SQLITE_STATIC) == SQLITE_OK)) {
 
 		   sqlite3_step(statement);
 		   sqlite3_reset(statement);

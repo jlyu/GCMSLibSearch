@@ -13,7 +13,7 @@
 
 
 
-#define PREPARED_STATEMENT_COUNT 4
+#define PREPARED_STATEMENT_COUNT 5
 
 
 
@@ -24,11 +24,10 @@ public:
 	~SqliteController(void);
 
 //接口
-	
 	int SqliteController::totalCompoundCounts(); //化合物总数
+	int SqliteController::maxPeakCount(); //库内最大峰个数
 	Compound SqliteController::getCompound(int compoundID); //按ID获得对应化合物
 	std::vector<Compound> SqliteController::getCompounds(int startCompoundID, int limit); //按起始ID及limit 获取对应化合物
-
 	void SqliteController::storeCompound(const Compound& aCompound); //插入或替代化合物
 
 	//删除化合物

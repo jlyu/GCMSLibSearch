@@ -19,5 +19,5 @@
 */
 /************************************************************************/
 MATCHAPI unsigned int
-	DiffSpectrum(unsigned int* Mass_Match, float* AjustedAbundance_Match,unsigned int MassCount_Match,
-	unsigned int* Mass_Lib, float* AjustedAbundance_Lib,unsigned int MassCount_Lib);
+	DiffSpectrum(unsigned int* Mass_Match, float* AjustedAbundance_Match, unsigned int MassCount_Match,
+	unsigned int* Mass_Lib, float* AjustedAbundance_Lib, unsigned int MassCount_Lib);
