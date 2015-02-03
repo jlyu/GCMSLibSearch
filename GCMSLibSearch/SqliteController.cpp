@@ -27,8 +27,8 @@ SqliteController::SqliteController(const std::string &file): //可以分散成3个文件
 			"  LIMIT ?" 
 			"  OFFSET ?",
 			// Store Or update new Compound
-			"INSERT OR REPLACE INTO CompoundInfo ([CompoundName], [Formula], [MassWeight], [CasNo], [PeakCount], [PeakData])"
-			" VALUES (?, ?, ?, ?, ?, ?);"
+			"INSERT OR REPLACE INTO CompoundInfo ([CompoundID], [CompoundName], [Formula], [MassWeight], [CasNo], [PeakCount], [PeakData])"
+			" VALUES (?, ?, ?, ?, ?, ?, ?);"
 
 		};
 
@@ -54,7 +54,7 @@ bool SqliteController::init_openSQLite(const std::string &file) {
 		return false;
 	}
 
-	printf("db open successfully!\n");
+	printf("open ---> OK \n\n");
 	return true;
 }
 
@@ -99,6 +99,7 @@ Compound SqliteController::getCompound(int compoundID) {
 	return aCompound;
 }
 std::vector<Compound> SqliteController::getCompounds(int startCompoundID, int limit) {
+
 	std::vector<Compound> compounds;
 	sqlite3_stmt *statement = _pStatements[FIND_COMPOUND_BY_RANK];
 
@@ -122,9 +123,23 @@ std::vector<Compound> SqliteController::getCompounds(int startCompoundID, int li
 	sqlite3_reset(statement);
 	return compounds;
 }
-
 void SqliteController::storeCompound(const Compound& aCompound) {
 
+	// TODO: VERIFY compound datas
+	sqlite3_stmt *statement = _pStatements[STORE_COMPOUND_DATA];
+	
+	if ((sqlite3_bind_int(statement,  1, aCompound._compoundID) == SQLITE_OK) &&
+		(sqlite3_bind_text(statement, 2, aCompound._compoundName.c_str(), -1, SQLITE_STATIC) == SQLITE_OK) &&
+		(sqlite3_bind_text(statement, 3, aCompound._formula.c_str(), -1, SQLITE_STATIC) == SQLITE_OK) &&
+		(sqlite3_bind_int(statement,  4, aCompound._massWeight) == SQLITE_OK) &&
+		(sqlite3_bind_text(statement, 5, aCompound._casNo.c_str(), -1, SQLITE_STATIC) == SQLITE_OK) &&
+		(sqlite3_bind_int(statement,  6, aCompound._peakCount) == SQLITE_OK) &&
+		(sqlite3_bind_text(statement, 7, aCompound._peakData.c_str(), -1, SQLITE_STATIC) == SQLITE_OK) 
+	   ) {
+
+		   sqlite3_step(statement);
+		   sqlite3_reset(statement);
+	}
 }
 // - 内部测试接口
 
@@ -144,43 +159,3 @@ void SqliteController::queryCompoundData(std::vector<Compound> &selectedCompound
 	
 	return;
 }
-
-//Compound SqliteController::getCompound(int compoundID) {
-//
-//	Compound aCompound;
-//	int rc = 0;
-//	sqlite3_stmt *stmt;
-//	std::string query = "SELECT * FROM CompoundInfo WHERE CompoundID = ?";
-//
-//	rc = sqlite3_prepare(_ppDB, query.c_str(), query.size(), &stmt, NULL);
-//	if (rc != SQLITE_OK) {
-//
-//		std::cerr << "sqlite3_prepare[" << rc << "] " << sqlite3_errmsg(_ppDB) << " " << sqlite3_errcode(_ppDB) << std::endl;
-//		sqlite3_finalize(stmt);
-//		return aCompound;
-//	}
-//
-//	rc = sqlite3_bind_int(stmt, 1, compoundID);
-//	if (rc != SQLITE_OK) {
-//		std::cerr << "sqlite3_bind_int[" << rc << "] " << sqlite3_errmsg(_ppDB) << " " << sqlite3_errcode(_ppDB) << std::endl;
-//		sqlite3_finalize(stmt);
-//		return aCompound;
-//	}
-//
-//	rc = sqlite3_step(stmt);
-//	if (rc == SQLITE_DONE) { return aCompound; }
-//
-//	
-//	if (sqlite3_data_count(stmt) > 0) {
-//		aCompound._compoundID = sqlite3_column_int(stmt, 0);
-//		aCompound._compoundName = (const char*)sqlite3_column_text(stmt, 1);
-//		aCompound._formula = (const char*)sqlite3_column_text(stmt, 2);
-//		aCompound._massWeight = sqlite3_column_int(stmt, 3);
-//		aCompound._casNo = (const char*)sqlite3_column_text(stmt, 4);
-//		aCompound._peakCount = sqlite3_column_int(stmt, 5);
-//		aCompound._peakData = (const char*)sqlite3_column_text(stmt, 7); // Col 6 = `Comment`
-//	}
-//
-//	sqlite3_finalize(stmt);
-//	return aCompound;
-//}

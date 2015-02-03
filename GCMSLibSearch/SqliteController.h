@@ -31,6 +31,8 @@ public:
 
 	void SqliteController::storeCompound(const Compound& aCompound); //插入或替代化合物
 
+	//删除化合物
+
 	//bool hasCompoundRecords(const std::string &tableName = TABLE_COMPOUND_INFO); //检验数据库表内是否存在化合物数据
 
 
