@@ -25,7 +25,7 @@ Provider=Microsoft.Jet.OLEDB.4.0;Data Source=E:\XKTV_2012_0515.mdb;Persist Secur
 系统配置要把 v100 -> v90
 
 #### Debug -> Release 版
-#include "SuperChartLib.h" //导致无法打开包括文件:“SuperChartLib.h”
+```#include "SuperChartLib.h" //导致无法打开包括文件:“SuperChartLib.h”```
 
 #### sqlite3集成
 编译错误：fatal error C1900: “P1”(第“20081201”版)和“P2”(第“20080116”版)之间 Il 不匹配

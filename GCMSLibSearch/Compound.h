@@ -4,6 +4,17 @@
 
 #include <iostream>
 
+class Peak {
+public:
+	Peak(void):_peakCount(0), _peakData("") { }
+	virtual ~Peak(void) { }
+
+	int _peakCount;
+	std::string _peakData;
+};
+
+
+
 class Compound {
 
 public:
