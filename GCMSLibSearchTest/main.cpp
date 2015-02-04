@@ -148,9 +148,11 @@ bool test_diffSpectrum(SqliteController *pSqlController, int times) {
 
 int main() {
 	
+	double timeStart = (double)clock(); 
+
 	SqliteController sqlController("../ms.db");
 
-	double timeStart = (double)clock(); 
+	
 
 	//test_diffSpectrum(&sqlController, 10000); // 4200ms
 	//test_diffSpectrum(&sqlController, 100000); // 293-297s -> 279-325s -> 297-323s

@@ -13,6 +13,14 @@ public:
 	std::string _peakData;
 };
 
+class PeakPoint {
+public:
+	PeakPoint():_compoundID(0), _x(0), _y(0) { }
+
+    int _compoundID;
+	int _x;
+	int _y;
+};
 
 
 class Compound {

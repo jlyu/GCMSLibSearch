@@ -13,7 +13,7 @@
 
 
 
-#define PREPARED_STATEMENT_COUNT 7
+#define PREPARED_STATEMENT_COUNT 8
 
 
 
@@ -39,6 +39,7 @@ public:
 
 	// 增/改
 	void SqliteController::storeCompound(const Compound& aCompound); //插入或替代化合物
+	void SqliteController::storePeakData(const PeakPoint& aPoint);
 
 	// 删
 	//bool hasCompoundRecords(const std::string &tableName = TABLE_COMPOUND_INFO); //检验数据库表内是否存在化合物数据
@@ -50,7 +51,9 @@ public:
 
 private:
 	bool SqliteController::init_openSQLite(const std::string &file);
-	int SqliteController::query_aSingleCount(sqlite3_stmt* pStatement);
+	int  SqliteController::query_aSingleCount(sqlite3_stmt* pStatement);
+	void SqliteController::pre_parsePeakDate(); //把CompoundInfo表的PeakData字段数据解析存入PeakData表内
+	void SqliteController::pre_parsePeakDataString(const std::string& strPeakData, int peakCount, int *x, int *y);
 
 private:
 	sqlite3* _ppDB;

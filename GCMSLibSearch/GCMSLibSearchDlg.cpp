@@ -195,16 +195,16 @@ void CGCMSLibSearchDlg::OnBnShowSearchResult()
 {
 	std::vector<Compound> compounds;
 
-	//¿ªÊ¼Æ×¿âËÑË÷Âß¼­
-	SqliteController sqliteController;
-	sqliteController.queryCompoundData(compounds);
+	////¿ªÊ¼Æ×¿âËÑË÷Âß¼­
+	//SqliteController sqliteController;
+	//sqliteController.queryCompoundData(compounds);
 
-	//
+	////
 
-	CSearchResultView *pSearchResultDlg = CSearchResultView::getInstance();
-	pSearchResultDlg->fillCompoundList(compounds);
-	pSearchResultDlg->setNofityObject(this);
-	pSearchResultDlg->ShowWindow(SW_SHOW);
+	//CSearchResultView *pSearchResultDlg = CSearchResultView::getInstance();
+	//pSearchResultDlg->fillCompoundList(compounds);
+	//pSearchResultDlg->setNofityObject(this);
+	//pSearchResultDlg->ShowWindow(SW_SHOW);
 
 }
 

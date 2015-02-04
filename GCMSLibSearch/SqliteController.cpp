@@ -12,6 +12,7 @@
 #define FIND_PEAKDATA_BY_ID		4
 #define FIND_COMPOUND_BY_RANK	5
 #define STORE_COMPOUND_DATA		6
+#define STORE_PEAK_DATA			7
 
 
 // -init & deinit
@@ -38,8 +39,10 @@ SqliteController::SqliteController(const std::string &file): //可以分散成3个文件
 			"  OFFSET ?",
 			// Store Or update new Compound
 			"INSERT OR REPLACE INTO CompoundInfo ([CompoundID], [CompoundName], [Formula], [MassWeight], [CasNo], [PeakCount], [PeakData])"
-			" VALUES (?, ?, ?, ?, ?, ?, ?);"
-
+			" VALUES (?, ?, ?, ?, ?, ?, ?);",
+			// Store or update new PeakData
+			"INSERT OR REPLACE INTO PeakData ([CompoundID], [x], [y])"
+			"  VALUES (?, ?, ?);"
 		};
 
 		init_openSQLite(file); 
@@ -100,16 +103,66 @@ int SqliteController::query_aSingleCount(sqlite3_stmt* pStatement) {
 	sqlite3_reset(pStatement);
 	return count;
 }
+void SqliteController::pre_parsePeakDataString(const std::string& strPeakData, int peakCount, int *x, int *y) {
+	std::string::size_type i = 0;
+	std::string::size_type j = strPeakData.find(';');
+
+	for (int index = 0; index < peakCount; index++) {
+
+		std::string strXY = strPeakData.substr(i, j-i);
+		std::string::size_type w = strXY.find(' ');
+		std::string strX = strXY.substr(0, w);
+		std::string strY = strXY.substr(w+1, strXY.length());
+
+		x[index] = atoi(strX.c_str());
+		y[index] = (float)atoi(strY.c_str());
+
+		i = ++j;
+		j = strPeakData.find(';', j);
+
+	}
+}
+void SqliteController::pre_parsePeakDate() {
+	const int totalCompounds = totalCompoundCounts();
+
+	int* x = new int[1024];
+	int* y = new int[1024];
+
+	for (int compoundID = 1; compoundID < totalCompounds; compoundID++) {
+
+		if (compoundID % 1000 == 0) {
+			std::cout << compoundID << " done." << std::endl;
+		}
+
+		Peak aPeak = getPeakData(compoundID);
+		const std::string strPeakData = aPeak._peakData;
+		const int peakCount = aPeak._peakCount;
+
+		pre_parsePeakDataString(strPeakData, peakCount, x, y);
+
+		for (int peakIndex = 0; peakIndex < peakCount; peakIndex++) {
+			PeakPoint aPoint;
+			aPoint._compoundID = compoundID;
+			aPoint._x = x[peakIndex];
+			aPoint._y = y[peakIndex];
+			storePeakData(aPoint);
+		}
+	}
+
+	delete [] x;
+	delete [] y;
+}
 
 // - 外部接口提供
 void SqliteController::preproccess() {
-	createPeakDataTable();
+	createPeakDataTable(); 
+	pre_parsePeakDate();
 }
 void SqliteController::createPeakDataTable() {
 
 	sqlite3_stmt* statement = _pStatements[CREATE_TABLE_PEAKDATA];
 	int rc = sqlite3_step(statement);
-	if (rc != SQLITE_OK || rc != SQLITE_DONE) {
+	if (rc != SQLITE_OK && rc != SQLITE_DONE) {
 		std::cerr << "createPeakDataTable() -> sqlite3_step[" << rc << "] " << sqlite3_errmsg(_ppDB) << " " << sqlite3_errcode(_ppDB) << std::endl;
 	}
 	sqlite3_reset(statement);
@@ -212,4 +265,16 @@ void SqliteController::storeCompound(const Compound& aCompound) {
 		   sqlite3_step(statement);
 		   sqlite3_reset(statement);
 	}
+}
+void SqliteController::storePeakData(const PeakPoint& aPoint) {
+	sqlite3_stmt *statement = _pStatements[STORE_PEAK_DATA];
+
+	if ((sqlite3_bind_int(statement, 1, aPoint._compoundID) == SQLITE_OK) &&
+		(sqlite3_bind_int(statement, 2, aPoint._x) == SQLITE_OK) &&
+		(sqlite3_bind_int(statement, 3, aPoint._y) == SQLITE_OK) ) {
+
+			sqlite3_step(statement);
+			sqlite3_reset(statement);
+	}
+
 }
