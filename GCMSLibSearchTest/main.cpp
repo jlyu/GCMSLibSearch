@@ -70,21 +70,6 @@ bool test_storeCompound(SqliteController *pSqlController) {
 	return true;
 }
 bool test_diffSpectrum(SqliteController *pSqlController, int times) {
-/************************************************************************/
-/* 功能：谱图对比
-   参数：
-   Mass_Match：待匹配质量数[数组]
-   AjustedAbundance_Match：待匹配质量数丰度[数组]
-   MassCount_Match：待匹配峰个数
-
-   Mass_Lib：库谱图质量数[数组]
-   AjustedAbundance_Lib：库谱图质量数丰度[数组]
-   MassCount_Lib：库谱图峰个数
-   返回值：
-   -1：匹配失败
-   说明：输入的Mass_Match和Mass_Lib需要是质量数从小到大排列。
-*/
-/************************************************************************/
 
 	static double diffSpectrumTime = 0.0f;
 	static double parseTime = 0.0f;
@@ -103,21 +88,25 @@ bool test_diffSpectrum(SqliteController *pSqlController, int times) {
 	unsigned int* libMass = new unsigned int[maxPeakCount];
 	float* libAbundance = new float[maxPeakCount];
 	
-	for (int i = 1; i < times; i++) {
+	const int limit = 10000;
+	const int page = times / limit;
+	for (int i = 1; i < page; i++) {
 		
 		double timeStart = (double)clock();
-		//std::vector<Compound> compounds = pSqlController->getCompounds(1 + page * limit, limit);
+
+		std::vector<Peak> peaks = pSqlController->getPeakDatas(1 + page * limit, limit);
 		Peak libPeak = pSqlController->getPeakData(i);
 		const std::string strLibPeakData = libPeak._peakData;
 		const int libPeakCount = libPeak._peakCount;
+
 		double timeFinish = (double)clock();
 		sqliteTime += timeFinish - timeStart;
 
-		//for (size_t i = 0; i < compounds.size(); i++) {
-			//const int libPeakCount = compounds[i]._peakCount;
-			
-			//const std::string strLibPeakData = compounds[i]._peakData;
-			
+		const size_t peakSize = peaks.size();
+		for (size_t i = 0; i < peakSize; i++) {
+
+			const int libPeakCount = peaks[i]._peakCount;
+			const std::string strLibPeakData = peaks[i]._peakData;
 
 			timeStart = (double)clock();
 			parsePeakData(strLibPeakData, libPeakCount, libMass, libAbundance);
@@ -131,7 +120,7 @@ bool test_diffSpectrum(SqliteController *pSqlController, int times) {
 			diffSpectrumTime += timeFinish - timeStart;
 
 
-		//}
+		}
 	}
 
 	delete [] libAbundance;
@@ -151,11 +140,10 @@ int main() {
 	double timeStart = (double)clock(); 
 
 	SqliteController sqlController("../ms.db");
-
 	
 
 	//test_diffSpectrum(&sqlController, 10000); // 4200ms
-	//test_diffSpectrum(&sqlController, 100000); // 293-297s -> 279-325s -> 297-323s
+	test_diffSpectrum(&sqlController, 100000); // 293-297s -> 279-325s -> 297-323s
 	//test_maxPeakCount(&sqlController); //1233
 
 

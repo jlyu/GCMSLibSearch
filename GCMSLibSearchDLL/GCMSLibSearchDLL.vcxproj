@@ -76,11 +76,13 @@
   <ItemGroup>
     <ClCompile Include="..\GCMSLibSearch\Compound.cpp" />
     <ClCompile Include="..\GCMSLibSearch\SqliteController.cpp" />
+    <ClCompile Include="LibManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\GCMSLibSearch\Compound.h" />
     <ClInclude Include="..\GCMSLibSearch\sqlite3.h" />
     <ClInclude Include="..\GCMSLibSearch\SqliteController.h" />
+    <ClInclude Include="LibManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

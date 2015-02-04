@@ -11,8 +11,9 @@
 #define FIND_COMPOUND_BY_ID		3
 #define FIND_PEAKDATA_BY_ID		4
 #define FIND_COMPOUND_BY_RANK	5
-#define STORE_COMPOUND_DATA		6
-#define STORE_PEAK_DATA			7
+#define FIND_PEAKDATA_BY_RANK	6
+#define STORE_COMPOUND_DATA		7
+#define STORE_PEAK_DATA			8
 
 
 // -init & deinit
@@ -20,28 +21,33 @@ SqliteController::SqliteController(const std::string &file): //可以分散成3个文件
 	_ppDB(NULL) {
 
 		const std::string queries[] = { //TODO: CompoundInfo 必须可变
-			// Create table [PeakData]
+			// 0 Create table [PeakData]
 			"CREATE TABLE IF NOT EXISTS [PeakData] ([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [CompoundID] INTEGER, [x] INTEGER, [y] INTEGER);",
-			// COUNT TOTAL ROWs 
+			// 1 COUNT TOTAL ROWs 
 			"SELECT COUNT(*) FROM CompoundInfo",
-			// COUNT MAX PEAK COUNT
+			// 2 COUNT MAX PEAK COUNT
 			"SELECT max(PeakCount) FROM CompoundInfo LIMIT 1",
-			// Find Compound By CompoundID
+			// 3 Find Compound By CompoundID
 			"SELECT * FROM CompoundInfo" 
 			"  WHERE CompoundID = ?",
-			// Find peakData By CompoundID
+			// 4 Find peakData By CompoundID
 			"SELECT PeakCount, PeakData FROM CompoundInfo" 
 			"  WHERE CompoundID = ?",
-			// Find Compounds By Rank
+			// 5 Find Compounds By Rank
 			"SELECT * FROM CompoundInfo"
 			"  ORDER BY CompoundID"
 			"  LIMIT ?" 
 			"  OFFSET ?",
-			// Store Or update new Compound
+			// 6 Find PeakData By Rank
+			"SELECT PeakCount, PeakData FROM CompoundInfo"
+			"  ORDER BY CompoundID"
+			"  LIMIT ?" 
+			"  OFFSET ?",
+			// 7 Store Or update new Compound
 			"INSERT OR REPLACE INTO CompoundInfo ([CompoundID], [CompoundName], [Formula], [MassWeight], [CasNo], [PeakCount], [PeakData])"
 			" VALUES (?, ?, ?, ?, ?, ?, ?);",
-			// Store or update new PeakData
-			"INSERT OR REPLACE INTO PeakData ([CompoundID], [x], [y])"
+			// 8 Store or update new PeakData
+			"INSERT OR REPLACE INTO [PeakData] ([CompoundID], [x], [y])"
 			"  VALUES (?, ?, ?);"
 		};
 
@@ -52,7 +58,7 @@ SqliteController::SqliteController(const std::string &file): //可以分散成3个文件
 			sqlite3_prepare_v2(_ppDB, query.c_str(), query.size(), &_pStatements[index], NULL);
 		}
 
-		preproccess();
+		//preproccess();
 }
 SqliteController::~SqliteController(void) { 
 	for (size_t index = 0; index < PREPARED_STATEMENT_COUNT; index ++) {
@@ -91,7 +97,7 @@ void SqliteController::queryCompoundData(std::vector<Compound> &selectedCompound
 
 	return;
 }
-int SqliteController::query_aSingleCount(sqlite3_stmt* pStatement) {
+int  SqliteController::query_aSingleCount(sqlite3_stmt* pStatement) {
 	int count = 0;
 	int rc = sqlite3_step(pStatement);
 	if (rc != SQLITE_ROW) {
@@ -123,14 +129,16 @@ void SqliteController::pre_parsePeakDataString(const std::string& strPeakData, i
 	}
 }
 void SqliteController::pre_parsePeakDate() {
+
+	sqlite3_exec(_ppDB, "BEGIN;", 0, 0, 0);
+
+	int* x = new int[800];
+	int* y = new int[800];
+
 	const int totalCompounds = totalCompoundCounts();
-
-	int* x = new int[1024];
-	int* y = new int[1024];
-
 	for (int compoundID = 1; compoundID < totalCompounds; compoundID++) {
 
-		if (compoundID % 1000 == 0) {
+		if (compoundID % 10000 == 0) { 
 			std::cout << compoundID << " done." << std::endl;
 		}
 
@@ -149,8 +157,10 @@ void SqliteController::pre_parsePeakDate() {
 		}
 	}
 
-	delete [] x;
+	sqlite3_exec(_ppDB, "COMMIT;", 0, 0, 0);
+
 	delete [] y;
+	delete [] x;
 }
 
 // - 外部接口提供
@@ -167,7 +177,6 @@ void SqliteController::createPeakDataTable() {
 	}
 	sqlite3_reset(statement);
 }
-
 int SqliteController::totalCompoundCounts() { 
 
 	sqlite3_stmt* statement = _pStatements[COUNT_TOTAL_ROWS];
@@ -198,6 +207,27 @@ Peak SqliteController::getPeakData(int compoundID) {
 
 	sqlite3_reset(statement);
 	return aPeak;
+}
+std::vector<Peak> SqliteController::getPeakDatas(int startCompoundID, int limit) {
+	std::vector<Peak> peaks;
+	sqlite3_stmt *statement = _pStatements[FIND_PEAKDATA_BY_RANK];
+
+	if ((sqlite3_bind_int(statement, 1, limit) != SQLITE_OK) ||
+		(sqlite3_bind_int(statement, 2, startCompoundID) != SQLITE_OK)) {
+			std::cerr << "sqlite3_bind_int" << sqlite3_errmsg(_ppDB) << " " << sqlite3_errcode(_ppDB) << std::endl;
+			return peaks;
+	}
+
+	while (sqlite3_step(statement) == SQLITE_ROW) {
+		Peak aPeak;
+		aPeak._peakCount = sqlite3_column_int(statement, 0);
+		aPeak._peakData = (const char*)sqlite3_column_text(statement, 1);
+		peaks.push_back(aPeak);
+	}
+
+
+	sqlite3_reset(statement);
+	return peaks;
 }
 Compound SqliteController::getCompound(int compoundID) {
 

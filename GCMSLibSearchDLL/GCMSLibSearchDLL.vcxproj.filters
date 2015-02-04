@@ -24,12 +24,18 @@
     <ClInclude Include="..\GCMSLibSearch\sqlite3.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="LibManager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\GCMSLibSearch\SqliteController.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="..\GCMSLibSearch\Compound.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="LibManager.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
