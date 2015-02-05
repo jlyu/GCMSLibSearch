@@ -13,7 +13,7 @@
 
 
 
-#define PREPARED_STATEMENT_COUNT 9
+#define PREPARED_STATEMENT_COUNT 10
 
 
 
@@ -29,6 +29,7 @@ public:
 
 	// 建
 	void SqliteController::createPeakDataTable();
+	void SqliteController::dq_createMassHashTable();
 
 	// 查
 	int SqliteController::totalCompoundCounts(); //化合物总数
@@ -37,6 +38,8 @@ public:
 	std::vector<Compound> SqliteController::getCompounds(int startCompoundID, int limit); //按起始ID及limit 获取对应化合物
 	Peak SqliteController::getPeakData(int compoundID); //按ID获得对应化合物丰度数据
 	std::vector<Peak> SqliteController::getPeakDatas(int startCompoundID, int limit);
+
+	void SqliteController::getPeakPoints(int compoundID, int pointCount, unsigned int* x, float* y);
 	
 
 	// 增/改
@@ -50,12 +53,17 @@ public:
 
 	void queryCompoundData(std::vector<Compound> &selectedCompounds);
 	
+	//Dirty & Quick
+	std::vector<int> SqliteController::dq_getAllPeakCounts();
+	std::vector<int> SqliteController::dq_peakFilterByTwoMass();
 
 private:
 	bool SqliteController::init_openSQLite(const std::string &file);
 	int  SqliteController::query_aSingleCount(sqlite3_stmt* pStatement);
 	void SqliteController::pre_parsePeakDate(); //把CompoundInfo表的PeakData字段数据解析存入PeakData表内
 	void SqliteController::pre_parsePeakDataString(const std::string& strPeakData, int peakCount, int *x, int *y);
+
+	
 
 private:
 	sqlite3* _ppDB;

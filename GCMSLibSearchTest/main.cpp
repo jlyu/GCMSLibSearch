@@ -74,6 +74,8 @@ bool test_diffSpectrum(SqliteController *pSqlController, int times) {
 	static double diffSpectrumTime = 0.0f;
 	static double parseTime = 0.0f;
 	static double sqliteTime = 0.0f;
+	double timeStart = (double)clock();
+	double timeFinish = (double)clock();
 
 	// match compound
 	Compound testCompound = pSqlController->getCompound(4); //190790
@@ -84,44 +86,56 @@ bool test_diffSpectrum(SqliteController *pSqlController, int times) {
 	parsePeakData(strPeakData, matchPeakCount, matchMass, matchAbundance);
 
 	// lib compound
-	const int maxPeakCount = pSqlController->maxPeakCount();
+	const int maxPeakCount = 800; //pSqlController->maxPeakCount();
 	unsigned int* libMass = new unsigned int[maxPeakCount];
 	float* libAbundance = new float[maxPeakCount];
+
+	std::vector<int> peakCounts = pSqlController->dq_getAllPeakCounts();
 	
-	const int limit = 10000;
-	const int page = times / limit;
-	for (int i = 1; i < page; i++) {
-		
-		double timeStart = (double)clock();
-
-		std::vector<Peak> peaks = pSqlController->getPeakDatas(1 + page * limit, limit);
-		Peak libPeak = pSqlController->getPeakData(i);
-		const std::string strLibPeakData = libPeak._peakData;
-		const int libPeakCount = libPeak._peakCount;
-
-		double timeFinish = (double)clock();
+	for (int compoundID = 1; compoundID < times; compoundID++) {
+		timeStart = (double)clock();
+		const int libPeakCount = peakCounts[compoundID - 1]; //TODO: DQ
+		pSqlController->getPeakPoints(compoundID, libPeakCount ,libMass, libAbundance);
+		timeFinish = (double)clock();
 		sqliteTime += timeFinish - timeStart;
 
-		const size_t peakSize = peaks.size();
-		for (size_t i = 0; i < peakSize; i++) {
-
-			const int libPeakCount = peaks[i]._peakCount;
-			const std::string strLibPeakData = peaks[i]._peakData;
-
-			timeStart = (double)clock();
-			parsePeakData(strLibPeakData, libPeakCount, libMass, libAbundance);
-			timeFinish = (double)clock();
-			parseTime += timeFinish - timeStart;
-			
-			timeStart = (double)clock();
-			unsigned int matchedDegree = DiffSpectrum(matchMass, matchAbundance, matchPeakCount,
+		timeStart = (double)clock();
+		unsigned int matchedDegree = DiffSpectrum(matchMass, matchAbundance, matchPeakCount,
 														libMass, libAbundance, libPeakCount);
-			timeFinish = (double)clock();
-			diffSpectrumTime += timeFinish - timeStart;
-
-
-		}
+		timeFinish = (double)clock();
+		diffSpectrumTime += timeFinish - timeStart;
 	}
+	
+	//const int limit = 100000;
+	//const int pages = times / limit;
+	//for (int page = 0; page < pages; page++) {
+	//	std::cout << "range: [" << 1 + page * limit <<" ~ " <<1 + page * limit + limit << "]" << std::endl;
+	//	
+	//	double timeStart = (double)clock();
+
+	//	std::vector<Peak> peaks = pSqlController->getPeakDatas(1 + page * limit, limit);
+
+	//	double timeFinish = (double)clock();
+	//	sqliteTime += timeFinish - timeStart;
+
+	//	const size_t peakSize = peaks.size();
+	//	for (size_t i = 0; i < peakSize; i++) {
+
+	//		const int libPeakCount = peaks[i]._peakCount;
+	//		const std::string strLibPeakData = peaks[i]._peakData;
+
+	//		timeStart = (double)clock();
+	//		parsePeakData(strLibPeakData, libPeakCount, libMass, libAbundance);
+	//		timeFinish = (double)clock();
+	//		parseTime += timeFinish - timeStart;
+	//		
+	//		timeStart = (double)clock();
+	//		unsigned int matchedDegree = DiffSpectrum(matchMass, matchAbundance, matchPeakCount,
+	//													libMass, libAbundance, libPeakCount);
+	//		timeFinish = (double)clock();
+	//		diffSpectrumTime += timeFinish - timeStart;
+	//	}
+	//}
 
 	delete [] libAbundance;
 	delete [] libMass;
