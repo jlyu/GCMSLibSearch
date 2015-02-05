@@ -56,12 +56,14 @@ public:
 	//Dirty & Quick
 	std::vector<int> SqliteController::dq_getAllPeakCounts();
 	std::vector<int> SqliteController::dq_peakFilterByTwoMass();
+	void SqliteController::dq_pre_buildMassHash();
 
 private:
 	bool SqliteController::init_openSQLite(const std::string &file);
 	int  SqliteController::query_aSingleCount(sqlite3_stmt* pStatement);
 	void SqliteController::pre_parsePeakDate(); //把CompoundInfo表的PeakData字段数据解析存入PeakData表内
 	void SqliteController::pre_parsePeakDataString(const std::string& strPeakData, int peakCount, int *x, int *y);
+
 
 	
 

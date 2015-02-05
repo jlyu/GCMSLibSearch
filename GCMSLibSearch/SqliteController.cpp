@@ -1,4 +1,5 @@
 #include <iostream>
+#include <map>
 //#include <assert.h>
 #include "time.h"
 //#include "match.h"
@@ -16,6 +17,7 @@
 #define STORE_COMPOUND_DATA		8
 #define STORE_PEAK_DATA			9
 
+#define MAX_MASS 1659
 
 // -init & deinit
 SqliteController::SqliteController(const std::string &file): //可以分散成3个文件。但是库内部的表结构一致
@@ -173,6 +175,9 @@ void SqliteController::pre_parsePeakDate() {
 void SqliteController::preproccess() {
 	//createPeakDataTable(); 
 	//pre_parsePeakDate();
+
+	//dq_createMassHashTable();
+	dq_pre_buildMassHash();
 }
 void SqliteController::createPeakDataTable() {
 
@@ -357,6 +362,7 @@ void SqliteController::storeCompound(const Compound& aCompound) {
 	}
 }
 void SqliteController::storePeakData(const PeakPoint& aPoint) {
+
 	sqlite3_stmt *statement = _pStatements[STORE_PEAK_DATA];
 
 	if ((sqlite3_bind_int(statement, 1, aPoint._compoundID) == SQLITE_OK) &&
@@ -387,8 +393,100 @@ std::vector<int> SqliteController::dq_getAllPeakCounts() {
 	sqlite3_finalize(statement);
 	return counts;
 }
+void SqliteController::dq_createMassHashTable() {
+	sqlite3_stmt* statement;
+	const std::string query = "CREATE TABLE IF NOT EXISTS [MassHash] ([Mass] INTEGER PRIMARY KEY, [IDs] CHAR);";
+	sqlite3_prepare_v2(_ppDB, query.c_str(), query.size(), &statement, NULL);
 
+	int rc = sqlite3_step(statement);
+	if (rc != SQLITE_OK && rc != SQLITE_DONE) {
+		std::cerr << "createPeakDataTable() -> sqlite3_step[" << rc << "] " << sqlite3_errmsg(_ppDB) << " " << sqlite3_errcode(_ppDB) << std::endl;
+	}
+	sqlite3_finalize(statement);
+}
+void SqliteController::dq_pre_buildMassHash() {
+
+	sqlite3_stmt* statement;
+	const std::string queryCount = "SELECT COUNT(Mass) FROM [MassHash]";
+	sqlite3_prepare_v2(_ppDB, queryCount.c_str(), queryCount.size(), &statement, NULL);
+	int massCount = 0;
+	if (sqlite3_step(statement) == SQLITE_ROW) {
+		massCount = sqlite3_column_int(statement, 0);
+	}
+	sqlite3_finalize(statement);
+
+	// 按升序填充 Mass 序号
+	if (massCount == 0) {
+		const std::string query = "INSERT OR REPLACE INTO [MassHash](Mass, IDs) VALUES (?, '')";
+		sqlite3_prepare_v2(_ppDB, query.c_str(), query.size(), &statement, NULL);
+
+		sqlite3_exec(_ppDB, "BEGIN;", 0, 0, 0);
+		for (int i=1; i <= MAX_MASS; i++) {
+			if (sqlite3_bind_int(statement, 1, i) == SQLITE_OK) {
+				sqlite3_step(statement);
+				sqlite3_reset(statement);
+			}
+		}
+		sqlite3_exec(_ppDB, "COMMIT;", 0, 0, 0);
+		sqlite3_finalize(statement);
+		std::cout << "dq_pre_buildMassHash() -> OK" << std::endl;
+	}
+
+	// 填充 IDs 	
+	
+	sqlite3_stmt* statementPeakData;
+	const std::string queryPeakData = "SELECT [compoundID] FROM [PeakData] WHERE x = ?;";
+
+	sqlite3_stmt* statementMassHash;
+	//const std::string queryMassHash = "SELECT [IDs] FROM [MassHash] WHERE Mass = ? LIMIT 1";
+	const std::string insertMassHash = "INSERT OR REPLACE INTO [MassHash](Mass, IDs) VALUES (?, ?)";
+
+
+	//std::map<int, std::string> massHash; // mass - id
+	//for (int i=1; i <= MAX_MASS; i++) { massHash[i] = ""; }
+
+	
+	for (int massIndex = 1; massIndex <= MAX_MASS; massIndex++) {
+
+		// 读取PeakData 中的对应关系
+		int count = 0;
+		double timeStart = (double)clock();
+
+		std::string compoundIDs = "";
+
+		sqlite3_exec(_ppDB, "BEGIN;", 0, 0, 0);
+		sqlite3_prepare_v2(_ppDB, queryPeakData.c_str(), queryPeakData.size(), &statementPeakData, NULL);
+		if (sqlite3_bind_int(statementPeakData, 1, massIndex) == SQLITE_OK) {
+
+			while (sqlite3_step(statementPeakData) == SQLITE_ROW) {
+
+				compoundIDs += (const char*)sqlite3_column_text(statementPeakData, 0); 
+				compoundIDs += ",";
+				count++;
+			}
+		}
+		sqlite3_exec(_ppDB, "COMMIT;", 0, 0, 0);
+		sqlite3_finalize(statementPeakData);
+
+		// 存入MassHash
+		sqlite3_prepare_v2(_ppDB, insertMassHash.c_str(), insertMassHash.size(), &statementMassHash, NULL);
+		if ((sqlite3_bind_int(statementMassHash, 1, massIndex) == SQLITE_OK) &&
+			(sqlite3_bind_text(statementMassHash, 2, compoundIDs.c_str(), -1, SQLITE_STATIC) == SQLITE_OK) ) {
+
+				sqlite3_step(statementMassHash);
+				sqlite3_finalize(statementMassHash);
+		}
+
+		double timeFinish = (double)clock();
+		std::cout << massIndex << " done ("<< count <<") "<< MAX_MASS - massIndex << " to go. =" << timeFinish-timeStart <<" ms" << std::endl;
+		
+	}
+
+
+}
 std::vector<int> SqliteController::dq_peakFilterByTwoMass() {
+	std::vector<int> compoundIDs;
+
 	srand((unsigned)time(NULL));
 	int firstMass = rand() % 999 + 1;
 	int secondMass = rand() % 999 + 1;
@@ -397,4 +495,7 @@ std::vector<int> SqliteController::dq_peakFilterByTwoMass() {
 	}
 
 	const std::string query = "SELECT CompoundID FROM PeakData WHERE x = %d OR x="; //TBC
+
+	return compoundIDs;
 }
+

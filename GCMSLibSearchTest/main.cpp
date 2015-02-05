@@ -157,7 +157,7 @@ int main() {
 	
 
 	//test_diffSpectrum(&sqlController, 10000); // 4200ms
-	test_diffSpectrum(&sqlController, 100000); // 293-297s -> 279-325s -> 297-323s
+	//test_diffSpectrum(&sqlController, 100000); // 293-297s -> 279-325s -> 297-323s
 	//test_maxPeakCount(&sqlController); //1233
 
 
