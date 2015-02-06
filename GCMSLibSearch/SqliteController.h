@@ -31,6 +31,9 @@ public:
 	void SqliteController::createPeakDataTable();
 	void SqliteController::dq_createMassHashTable();
 
+	// 索引
+	//void SqliteController::dq_createIndexOnMassHash();
+
 	// 查
 	int SqliteController::totalCompoundCounts(); //化合物总数
 	int SqliteController::maxPeakCount(); //库内最大峰个数

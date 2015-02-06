@@ -25,7 +25,8 @@ SqliteController::SqliteController(const std::string &file): //可以分散成3个文件
 
 		const std::string queries[] = { //TODO: CompoundInfo 必须可变
 			// 0 Create table [PeakData]
-			"CREATE TABLE IF NOT EXISTS [PeakData] ([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [CompoundID] INTEGER, [x] INTEGER, [y] INTEGER);",
+			"CREATE TABLE IF NOT EXISTS [PeakData] ([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [CompoundID] INTEGER, [x] INTEGER, [y] INTEGER);"
+			"CREATE INDEX IF NOT EXISTS idx_x ON [PeakData] (x);",
 			// 1 COUNT TOTAL ROWs 
 			"SELECT COUNT(*) FROM CompoundInfo",
 			// 2 COUNT MAX PEAK COUNT
@@ -173,6 +174,7 @@ void SqliteController::pre_parsePeakDate() {
 
 // - 外部接口提供
 void SqliteController::preproccess() {
+	
 	//createPeakDataTable(); 
 	//pre_parsePeakDate();
 
@@ -400,7 +402,7 @@ void SqliteController::dq_createMassHashTable() {
 
 	int rc = sqlite3_step(statement);
 	if (rc != SQLITE_OK && rc != SQLITE_DONE) {
-		std::cerr << "createPeakDataTable() -> sqlite3_step[" << rc << "] " << sqlite3_errmsg(_ppDB) << " " << sqlite3_errcode(_ppDB) << std::endl;
+		std::cerr << "dq_createMassHashTable() -> sqlite3_step[" << rc << "] " << sqlite3_errmsg(_ppDB) << " " << sqlite3_errcode(_ppDB) << std::endl;
 	}
 	sqlite3_finalize(statement);
 }
@@ -446,7 +448,7 @@ void SqliteController::dq_pre_buildMassHash() {
 	//for (int i=1; i <= MAX_MASS; i++) { massHash[i] = ""; }
 
 	
-	for (int massIndex = 1; massIndex <= MAX_MASS; massIndex++) {
+	for (int massIndex = 779; massIndex <= MAX_MASS; massIndex++) {
 
 		// 读取PeakData 中的对应关系
 		int count = 0;
@@ -481,8 +483,6 @@ void SqliteController::dq_pre_buildMassHash() {
 		std::cout << massIndex << " done ("<< count <<") "<< MAX_MASS - massIndex << " to go. =" << timeFinish-timeStart <<" ms" << std::endl;
 		
 	}
-
-
 }
 std::vector<int> SqliteController::dq_peakFilterByTwoMass() {
 	std::vector<int> compoundIDs;
