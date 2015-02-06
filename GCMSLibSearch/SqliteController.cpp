@@ -1,5 +1,6 @@
 #include <iostream>
-#include <map>
+//#include <map>
+#include <algorithm>
 //#include <assert.h>
 #include "time.h"
 //#include "match.h"
@@ -88,98 +89,15 @@ bool SqliteController::init_openSQLite(const std::string &file) {
 	return true;
 }
 
-// - 内部接口
-void SqliteController::queryCompoundData(std::vector<Compound> &selectedCompounds) {
-
-	if (!selectedCompounds.empty()) { selectedCompounds.clear(); }
-
-
-	//TODO: 实际检索数据代替随机测试数据
-	int randomID[20] = { 0 };
-	srand((unsigned)time(NULL));
-	for (int i = 0; i < sizeof(randomID) / sizeof(int); i++) {
-		randomID[i] = rand() % 191436 + 1;
-		Compound aCompound = getCompound(randomID[i]);
-		selectedCompounds.push_back(aCompound);
-	}	
-
-	return;
-}
-int  SqliteController::query_aSingleCount(sqlite3_stmt* pStatement) {
-	int count = 0;
-	int rc = sqlite3_step(pStatement);
-	if (rc != SQLITE_ROW) {
-		std::cerr << "sqlite3_step[" << rc << "] " << sqlite3_errmsg(_ppDB) << " " << sqlite3_errcode(_ppDB) << std::endl;
-		return -1;
-	}
-
-	count = sqlite3_column_int(pStatement, 0);
-	sqlite3_reset(pStatement);
-	return count;
-}
-void SqliteController::pre_parsePeakDataString(const std::string& strPeakData, int peakCount, int *x, int *y) {
-	std::string::size_type i = 0;
-	std::string::size_type j = strPeakData.find(';');
-
-	for (int index = 0; index < peakCount; index++) {
-
-		std::string strXY = strPeakData.substr(i, j-i);
-		std::string::size_type w = strXY.find(' ');
-		std::string strX = strXY.substr(0, w);
-		std::string strY = strXY.substr(w+1, strXY.length());
-
-		x[index] = atoi(strX.c_str());
-		y[index] = (float)atoi(strY.c_str());
-
-		i = ++j;
-		j = strPeakData.find(';', j);
-
-	}
-}
-void SqliteController::pre_parsePeakDate() {
-
-	sqlite3_exec(_ppDB, "BEGIN;", 0, 0, 0);
-
-	int* x = new int[800];
-	int* y = new int[800];
-
-	const int totalCompounds = totalCompoundCounts();
-	for (int compoundID = 1; compoundID < totalCompounds; compoundID++) {
-
-		if (compoundID % 10000 == 0) { 
-			std::cout << compoundID << " done." << std::endl;
-		}
-
-		Peak aPeak = getPeakData(compoundID);
-		const std::string strPeakData = aPeak._peakData;
-		const int peakCount = aPeak._peakCount;
-
-		pre_parsePeakDataString(strPeakData, peakCount, x, y);
-
-		for (int peakIndex = 0; peakIndex < peakCount; peakIndex++) {
-			PeakPoint aPoint;
-			aPoint._compoundID = compoundID;
-			aPoint._x = x[peakIndex];
-			aPoint._y = y[peakIndex];
-			storePeakData(aPoint);
-		}
-	}
-
-	sqlite3_exec(_ppDB, "COMMIT;", 0, 0, 0);
-
-	std::cout << "all " << totalCompounds << " done." << std::endl;
-	delete [] y;
-	delete [] x;
-}
-
 // - 外部接口提供
 void SqliteController::preproccess() {
-	
+	// TABLE [PeakData]
 	//createPeakDataTable(); 
 	//pre_parsePeakDate();
 
+	// TABLE [MassHash]
 	//dq_createMassHashTable();
-	dq_pre_buildMassHash();
+	//dq_pre_buildMassHash();
 }
 void SqliteController::createPeakDataTable() {
 
@@ -376,8 +294,125 @@ void SqliteController::storePeakData(const PeakPoint& aPoint) {
 	}
 
 }
+// - 内部接口
+void SqliteController::queryCompoundData(std::vector<Compound> &selectedCompounds) {
+
+	if (!selectedCompounds.empty()) { selectedCompounds.clear(); }
 
 
+	//TODO: 实际检索数据代替随机测试数据
+	int randomID[20] = { 0 };
+	srand((unsigned)time(NULL));
+	for (int i = 0; i < sizeof(randomID) / sizeof(int); i++) {
+		randomID[i] = rand() % 191436 + 1;
+		Compound aCompound = getCompound(randomID[i]);
+		selectedCompounds.push_back(aCompound);
+	}	
+
+	return;
+}
+int  SqliteController::query_aSingleCount(sqlite3_stmt* pStatement) {
+	int count = 0;
+	int rc = sqlite3_step(pStatement);
+	if (rc != SQLITE_ROW) {
+		std::cerr << "query_aSingleCount -> sqlite3_step[" << rc << "] " << sqlite3_errmsg(_ppDB) << " " << sqlite3_errcode(_ppDB) << std::endl;
+		return -1;
+	}
+
+	count = sqlite3_column_int(pStatement, 0);
+	sqlite3_reset(pStatement);
+	return count;
+}
+void SqliteController::pre_parsePeakDataString(const std::string& strPeakData, int peakCount, int *x, int *y) {
+	std::string::size_type i = 0;
+	std::string::size_type j = strPeakData.find(';');
+
+	for (int index = 0; index < peakCount; index++) {
+
+		std::string strXY = strPeakData.substr(i, j-i);
+		std::string::size_type w = strXY.find(' ');
+		std::string strX = strXY.substr(0, w);
+		std::string strY = strXY.substr(w+1, strXY.length());
+
+		x[index] = atoi(strX.c_str());
+		y[index] = (float)atoi(strY.c_str());
+
+		i = ++j;
+		j = strPeakData.find(';', j);
+
+	}
+}
+void SqliteController::pre_parsePeakDataString(const std::string& strPeakData, int peakCount, std::vector<PeakPoint> &peakPoints) {
+
+	std::string::size_type i = 0;
+	std::string::size_type j = strPeakData.find(';');
+
+	for (int index = 0; index < peakCount; index++) {
+
+		std::string strXY = strPeakData.substr(i, j-i);
+		std::string::size_type w = strXY.find(' ');
+		std::string strX = strXY.substr(0, w);
+		std::string strY = strXY.substr(w+1, strXY.length());
+
+		PeakPoint aPeakPoint;
+		aPeakPoint._x = atoi(strX.c_str());
+		aPeakPoint._y = atoi(strY.c_str());
+		peakPoints.push_back(aPeakPoint);
+
+		i = ++j;
+		j = strPeakData.find(';', j);
+
+	}
+}
+void SqliteController::pre_parsePeakDate() {
+
+	sqlite3_exec(_ppDB, "BEGIN;", 0, 0, 0);
+
+	int* x = new int[800];
+	int* y = new int[800];
+
+	const int totalCompounds = totalCompoundCounts();
+	for (int compoundID = 1; compoundID < totalCompounds; compoundID++) {
+
+		if (compoundID % 10000 == 0) { 
+			std::cout << compoundID << " done." << std::endl;
+		}
+
+		Peak aPeak = getPeakData(compoundID);
+		const std::string strPeakData = aPeak._peakData;
+		const int peakCount = aPeak._peakCount;
+
+		pre_parsePeakDataString(strPeakData, peakCount, x, y);
+
+		for (int peakIndex = 0; peakIndex < peakCount; peakIndex++) {
+			PeakPoint aPoint;
+			aPoint._compoundID = compoundID;
+			aPoint._x = x[peakIndex];
+			aPoint._y = y[peakIndex];
+			storePeakData(aPoint);
+		}
+	}
+
+	sqlite3_exec(_ppDB, "COMMIT;", 0, 0, 0);
+
+	std::cout << "all " << totalCompounds << " done." << std::endl;
+	delete [] y;
+	delete [] x;
+}
+void SqliteController::parseCompoundIDs(const std::string &strCompoundIDs, std::set<int> &compoundIDs) {
+
+	std::string::size_type i = 0;
+	std::string::size_type j = strCompoundIDs.find(',');
+
+	while ( j != std::string::npos) {
+
+		std::string strCompoundID = strCompoundIDs.substr(i, j-i);
+		compoundIDs.insert( atoi(strCompoundID.c_str()) );
+
+		i = ++j;
+		j = strCompoundIDs.find(',', j);
+	}
+}
 // Dirty & Quick
 std::vector<int> SqliteController::dq_getAllPeakCounts() {
 	std::vector<int> counts;
@@ -448,7 +483,7 @@ void SqliteController::dq_pre_buildMassHash() {
 	//for (int i=1; i <= MAX_MASS; i++) { massHash[i] = ""; }
 
 	
-	for (int massIndex = 779; massIndex <= MAX_MASS; massIndex++) {
+	for (int massIndex = 1; massIndex <= MAX_MASS; massIndex++) {
 
 		// 读取PeakData 中的对应关系
 		int count = 0;
@@ -484,18 +519,42 @@ void SqliteController::dq_pre_buildMassHash() {
 		
 	}
 }
-std::vector<int> SqliteController::dq_peakFilterByTwoMass() {
-	std::vector<int> compoundIDs;
 
-	srand((unsigned)time(NULL));
-	int firstMass = rand() % 999 + 1;
-	int secondMass = rand() % 999 + 1;
-	while (firstMass == secondMass) {
-		secondMass = rand() % 999 + 1;
+void SqliteController::dq_filterPeakByTwoMass(const Compound &aCompound, std::set<int> &compoundIDsSet) {
+
+	const std::string strPeakData = aCompound._peakData;
+	const int peakCount = aCompound._peakCount;
+
+	// 解析字符串 找出最大和次最大的Y值对应的X
+	
+	std::vector<PeakPoint> peakPoints;
+	pre_parsePeakDataString(strPeakData, peakCount, peakPoints);
+	if (peakPoints.size() < 2) { return; }
+
+	nth_element(peakPoints.begin(), peakPoints.begin() + 2, peakPoints.end(), SqliteController::peakPointCompare); // 最大的2个数
+	int maxX = peakPoints[0]._x; 
+	int subX = peakPoints[1]._x;
+
+	//std::string strCompoundIDs = "";
+	sqlite3_stmt* statement;
+	const std::string query = "SELECT IDs FROM MassHash WHERE Mass = ? LIMIT 1;"; // TODO: 分成2句
+	sqlite3_prepare_v2(_ppDB, query.c_str(), query.size(), &statement, NULL);
+
+	//std::set<int> compoundIDsSet;
+	if ((sqlite3_bind_int(statement, 1, maxX) == SQLITE_OK)) {
+		if (sqlite3_step(statement) == SQLITE_ROW) {
+			const std::string strCompoundIDs = (const char*)sqlite3_column_text(statement, 0);
+			parseCompoundIDs(strCompoundIDs, compoundIDsSet);
+			sqlite3_reset(statement);
+		}
 	}
 
-	const std::string query = "SELECT CompoundID FROM PeakData WHERE x = %d OR x="; //TBC
-
-	return compoundIDs;
+	if ((sqlite3_bind_int(statement, 1, subX) == SQLITE_OK)) {
+		if (sqlite3_step(statement) == SQLITE_ROW) {
+			const std::string strCompoundIDs = (const char*)sqlite3_column_text(statement, 0);
+			parseCompoundIDs(strCompoundIDs, compoundIDsSet);
+			sqlite3_reset(statement);
+		}
+	}
 }
 

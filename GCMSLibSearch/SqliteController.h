@@ -4,6 +4,7 @@
 #include "sqlite3.h"
 #include "Compound.h"
 #include <vector>
+#include <set>
 
 #if defined(DEBUG) || defined(_DEBUG)
 #pragma comment(lib, "sqlite3_D.lib")
@@ -58,16 +59,22 @@ public:
 	
 	//Dirty & Quick
 	std::vector<int> SqliteController::dq_getAllPeakCounts();
-	std::vector<int> SqliteController::dq_peakFilterByTwoMass();
+	void SqliteController::dq_filterPeakByTwoMass(const Compound &aCompound, std::set<int> &compoundIDsSet);
+
 	void SqliteController::dq_pre_buildMassHash();
 
 private:
 	bool SqliteController::init_openSQLite(const std::string &file);
 	int  SqliteController::query_aSingleCount(sqlite3_stmt* pStatement);
+	// Parse TODO： 合成一个函数
 	void SqliteController::pre_parsePeakDate(); //把CompoundInfo表的PeakData字段数据解析存入PeakData表内
 	void SqliteController::pre_parsePeakDataString(const std::string& strPeakData, int peakCount, int *x, int *y);
+	void SqliteController::pre_parsePeakDataString(const std::string& strPeakData, int peakCount, std::vector<PeakPoint> &peakPoints);
+	void SqliteController::parseCompoundIDs(const std::string &strCompoundIDs, std::set<int> &compoundIDs);
 
-
+	static bool peakPointCompare(const PeakPoint &p1, const PeakPoint &p2) {  
+		return p1._y > p2._y;  
+	}  
 	
 
 private:
