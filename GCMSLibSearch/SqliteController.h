@@ -13,9 +13,7 @@
 #endif
 
 
-
-#define PREPARED_STATEMENT_COUNT 10
-
+#define PREPARED_STATEMENT_COUNT 9
 
 
 class SqliteController {
@@ -29,22 +27,21 @@ public:
 	void SqliteController::preproccess();
 
 	// 建
-	void SqliteController::createPeakDataTable();
-	void SqliteController::dq_createMassHashTable();
-
-	// 索引
-	//void SqliteController::dq_createIndexOnMassHash();
+	void SqliteController::createPeakDataTable(); // +Index
+	void SqliteController::dq_createMassHashTable(); // +Index
 
 	// 查
 	int SqliteController::totalCompoundCounts(); //化合物总数
 	int SqliteController::maxPeakCount(); //库内最大峰个数
 	Compound SqliteController::getCompound(int compoundID); //按ID获得对应化合物
 	std::vector<Compound> SqliteController::getCompounds(int startCompoundID, int limit); //按起始ID及limit 获取对应化合物
-	Peak SqliteController::getPeakData(int compoundID); //按ID获得对应化合物丰度数据
+	void SqliteController::getPeakData(int compoundID, Peak &aPeak); //按ID获得对应化合物丰度数据
 	std::vector<Peak> SqliteController::getPeakDatas(int startCompoundID, int limit);
-
-	void SqliteController::getPeakPoints(int compoundID, int pointCount, unsigned int* x, float* y);
+	void SqliteController::dq_getPeakDatas(std::set<int> &compoundIDsSet, std::vector<Peak>& peaks);
+	void SqliteController::dq_getPeakDatas_v2(std::set<int> &compoundIDsSet, std::vector<Peak>& peaks);
+	void SqliteController::getPeakPoints(int compoundID, /*int pointCount,*/ unsigned int* x, float* y);
 	
+	void SqliteController::dq_getPeakPoints(/*std::set<int> &compoundIDsSet,*/ std::vector<PeakPoint>& peakPoints);
 
 	// 增/改
 	void SqliteController::storeCompound(const Compound& aCompound); //插入或替代化合物
@@ -65,6 +62,8 @@ public:
 
 private:
 	bool SqliteController::init_openSQLite(const std::string &file);
+	bool SqliteController::checkConnectionError();
+
 	int  SqliteController::query_aSingleCount(sqlite3_stmt* pStatement);
 	// Parse TODO： 合成一个函数
 	void SqliteController::pre_parsePeakDate(); //把CompoundInfo表的PeakData字段数据解析存入PeakData表内
