@@ -238,7 +238,6 @@ void SqliteController::dq_getPeakDatas_v2(int* compoundIDs, std::vector<Peak>& p
 	std::string query = "SELECT PeakCount, PeakData FROM CompoundInfo WHERE ";
 
 	int index = 0;
-	//typedef std::set<int>::iterator ITER;
 	for(int i = 1; i < COMPOUNDS_SIZES; i++) {
 		if (compoundIDs[i] != 1) { continue; }
 
@@ -254,7 +253,7 @@ void SqliteController::dq_getPeakDatas_v2(int* compoundIDs, std::vector<Peak>& p
 			
 			//std::cout << query.c_str() << std::endl;
 			while (sqlite3_step(statement) == SQLITE_ROW) {
-				//Peak aPeak;
+				
 				static int n = 0;
 				peaks[n]._peakCount = sqlite3_column_int(statement, 0);
 				peaks[n]._peakData = (const char*)sqlite3_column_text(statement, 1);

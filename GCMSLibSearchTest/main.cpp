@@ -166,7 +166,7 @@ void test_diffSpectrum_v3(SqliteController *pSqlController) {
 	int *compoundIDs = new int[COMPOUNDS_SIZES](); // [0] ´æ·Å¸öÊý
 	
 	pSqlController->dq_filterPeakByTwoMass(testCompound, compoundIDs);
-	//std::cout << compoundIDsSet.size() << " Found. Searching .." << std::endl;
+	std::cout << compoundIDs[0] << " Found." << std::endl;
 	timeFinish = (double)clock();
 	filterTime += timeFinish - timeStart;
 	
@@ -202,6 +202,7 @@ void test_diffSpectrum_v3(SqliteController *pSqlController) {
 		diffSpectrumTime += timeFinish - timeStart;
 	}
 
+	delete [] compoundIDs;
 	delete [] libY;
 	delete [] libX;
 	delete [] matchY;
