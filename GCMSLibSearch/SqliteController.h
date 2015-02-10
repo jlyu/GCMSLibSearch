@@ -14,7 +14,8 @@
 
 
 #define PREPARED_STATEMENT_COUNT 9
-
+#define COUNT_COMPOUNDS 191438
+#define COMPOUNDS_SIZES 191439
 
 class SqliteController {
 
@@ -38,9 +39,9 @@ public:
 	void SqliteController::getPeakData(int compoundID, Peak &aPeak); //按ID获得对应化合物丰度数据
 	std::vector<Peak> SqliteController::getPeakDatas(int startCompoundID, int limit);
 	void SqliteController::dq_getPeakDatas(std::set<int> &compoundIDsSet, std::vector<Peak>& peaks);
-	void SqliteController::dq_getPeakDatas_v2(std::set<int> &compoundIDsSet, std::vector<Peak>& peaks);
+	void SqliteController::dq_getPeakDatas_v2(int*, std::vector<Peak>& peaks);
 	void SqliteController::getPeakPoints(int compoundID, /*int pointCount,*/ unsigned int* x, float* y);
-	
+	void SqliteController::dq_getPeakPoints(int compoundID, /*int pointCount,*/ std::vector<PeakXY>& peakXYs);
 	void SqliteController::dq_getPeakPoints(/*std::set<int> &compoundIDsSet,*/ std::vector<PeakPoint>& peakPoints);
 
 	// 增/改
@@ -56,7 +57,7 @@ public:
 	
 	//Dirty & Quick
 	std::vector<int> SqliteController::dq_getAllPeakCounts();
-	void SqliteController::dq_filterPeakByTwoMass(const Compound &aCompound, std::set<int> &compoundIDsSet);
+	void SqliteController::dq_filterPeakByTwoMass(const Compound &aCompound, int* compoundIDs);
 
 	void SqliteController::dq_pre_buildMassHash();
 
@@ -70,6 +71,7 @@ private:
 	void SqliteController::pre_parsePeakDataString(const std::string& strPeakData, int peakCount, int *x, int *y);
 	void SqliteController::pre_parsePeakDataString(const std::string& strPeakData, int peakCount, std::vector<PeakPoint> &peakPoints);
 	void SqliteController::parseCompoundIDs(const std::string &strCompoundIDs, std::set<int> &compoundIDs);
+	void SqliteController::parseCompoundIDs(const std::string &strCompoundIDs, int* compoundIDs);
 
 	static bool peakPointCompare(const PeakPoint &p1, const PeakPoint &p2) {  
 		return p1._y > p2._y;  

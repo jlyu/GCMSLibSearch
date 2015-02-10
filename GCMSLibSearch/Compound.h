@@ -22,6 +22,24 @@ public:
 	int _y;
 };
 
+class PeakXY {
+public:
+	PeakXY(int capcity = 800):_compoundID(0) {
+			_x = new unsigned int[capcity];
+			_y = new float[capcity];
+	}
+	~PeakXY() {
+		if (_x != NULL && _y != NULL) {
+			delete [] _x; _x = NULL;
+			delete [] _y; _y = NULL;
+		}
+	}
+
+	int _compoundID;
+	unsigned int *_x;
+	float *_y;
+};
+
 
 class Compound {
 
