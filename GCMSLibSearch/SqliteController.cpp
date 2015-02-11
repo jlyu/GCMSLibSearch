@@ -121,14 +121,14 @@ bool SqliteController::checkConnectionError() {
 // - 外部接口提供
 void SqliteController::preproccess() {
 	// -Create TABLE [PeakData] [MassHash]
-	//createPeakDataTable(); 
-	//dq_createMassHashTable();
+	createPeakDataTable(); 
+	dq_createMassHashTable();
 	dq_createCompoundTable();
 
 	// -Fill in dates
-	//pre_parsePeakDate();
-	//dq_pre_buildMassHash();
-	dq_pre_buildCompound();
+	pre_parsePeakDate();
+	dq_pre_buildMassHash();
+	//dq_pre_buildCompound();
 }
 void SqliteController::createPeakDataTable() {
 
@@ -831,7 +831,6 @@ void SqliteController::dq_filterPeakByTwoMass(const Compound &aCompound, int* co
 	const std::string strPeakData = aCompound._peakData;
 	const int peakCount = aCompound._peakCount;
 	
-
 	// 解析字符串 找出最大和次最大的Y值对应的X
 	std::vector<PeakPoint> peakPoints;
 	pre_parsePeakDataString(strPeakData, peakCount, peakPoints);
@@ -857,16 +856,24 @@ void SqliteController::dq_filterPeakByTwoMass(const Compound &aCompound, int* co
 			}
 		}
 	}
-
-
-	//if ((sqlite3_bind_int(statement, 1, subX) == SQLITE_OK)) {
-	//	if (sqlite3_step(statement) == SQLITE_ROW) {
-	//		const std::string strCompoundIDs = (const char*)sqlite3_column_text(statement, 0);
-	//		parseCompoundIDs(strCompoundIDs, compoundIDs);
-	//		sqlite3_reset(statement);
-	//	}
-	//}
-
 	sqlite3_finalize(statement);
+}
+void SqliteController::dq_filterPeakByMaxX(const int maxX, int* compoundIDs) {
+
+	sqlite3_stmt* statement;
+	const std::string query = "SELECT CompoundID FROM Compound WHERE MaxX = ?;"; 
+	sqlite3_prepare_v2(_ppDB, query.c_str(), query.size(), &statement, NULL);
+
+	compoundIDs[0] = 0;
+	if ((sqlite3_bind_int(statement, 1,maxX) == SQLITE_OK)) {
+		while (sqlite3_step(statement) == SQLITE_ROW) {
+			int compoundID = sqlite3_column_int(statement, 0);
+
+			if (compoundIDs[compoundID] == 2) {
+				compoundIDs[compoundID] = 3;
+				compoundIDs[0]++;
+			}
+		}
+	}
 }
 

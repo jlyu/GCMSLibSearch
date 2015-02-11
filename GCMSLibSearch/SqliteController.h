@@ -52,14 +52,12 @@ public:
 
 	// 删
 	//bool hasCompoundRecords(const std::string &tableName = TABLE_COMPOUND_INFO); //检验数据库表内是否存在化合物数据
-
-
-
 	void queryCompoundData(std::vector<Compound> &selectedCompounds);
 	
 	//Dirty & Quick
 	std::vector<int> SqliteController::dq_getAllPeakCounts();
 	void SqliteController::dq_filterPeakByTwoMass(const Compound &aCompound, int* compoundIDs);
+	void SqliteController::dq_filterPeakByMaxX(const int maxX, int* compoundIDs);
 	void SqliteController::dq_pre_buildMassHash();
 	void SqliteController::dq_pre_buildCompound();
 

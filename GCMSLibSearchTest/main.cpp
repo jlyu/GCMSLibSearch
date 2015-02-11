@@ -207,18 +207,21 @@ void test_diffSpectrum_v3(SqliteController *pSqlController) {
 	double timeFinish = (double)clock();
 
 	// 【match compound】
-	Compound testCompound = pSqlController->getCompound(7); //190790
+	Compound testCompound = pSqlController->getCompound(4); //190790
 	const int matchPeakCount = testCompound._peakCount;
 	unsigned int* matchX = new unsigned int[matchPeakCount];
 	float* matchY = new float[matchPeakCount];
 	parseCompound(testCompound, matchX, matchY);
 	
-
 	// 【filtered compounds】
 	timeStart = (double)clock();
 	int *compoundIDs = new int[COMPOUNDS_SIZES]();  // [0]存放个数
 	pSqlController->dq_filterPeakByTwoMass(testCompound, compoundIDs);
-	std::cout << compoundIDs[0] << " Found." << std::endl;
+	std::cout << "filterPeakByTwoMass:\t" << compoundIDs[0] << " to go" << std::endl;
+
+	pSqlController->dq_filterPeakByMaxX(testCompound._maxX, compoundIDs);
+	std::cout << "filterPeakByMaxX:\t" << compoundIDs[0] << " to go" << std::endl;
+
 	timeFinish = (double)clock();
 	filterTime += timeFinish - timeStart;
 	
@@ -230,25 +233,19 @@ void test_diffSpectrum_v3(SqliteController *pSqlController) {
 	// Search
 	timeStart = (double)clock();
 	std::vector<Peak> peaks;
-	pSqlController->dq_getPeakDatas_v3(compoundIDs, peaks); 
+	pSqlController->dq_getPeakDatas_v2(compoundIDs, peaks); 
 	timeFinish = (double)clock();
 	sqliteTime += timeFinish - timeStart;
 
 	//typedef std::vector<Peak>::iterator ITER;
 	//for(ITER it = peaks.begin(); it != peaks.end(); it++) {
 
-	compoundIDs[0] = 0; 
 	const size_t peakSize = peaks.size();
 	for (size_t i = 0; i != peakSize; i++) {
 		
-		
-
-
 		// Parse String
 		timeStart = (double)clock();
-		//parsePeakData(peaks[i], compoundIDs, libX, libY);
-		int maxX = testCompound._maxX;
-		parsePeak(peaks[i], maxX, compoundIDs, i, libX, libY);
+		parsePeakData(peaks[i]._peakData, peaks[i]._peakCount, libX, libY);
 		timeFinish = (double)clock();
 		parseTime += timeFinish - timeStart;
 		
@@ -259,7 +256,6 @@ void test_diffSpectrum_v3(SqliteController *pSqlController) {
 		diffSpectrumTime += timeFinish - timeStart;
 	}
 
-	std::cout << compoundIDs[0] << " Found." << std::endl;
 	std::cout << "FilterComps:\t"  << filterTime << std::endl;
 	std::cout << "CalMatchRate:\t" << diffSpectrumTime << std::endl;
 	std::cout << "ParseStrings:\t" << parseTime << std::endl;
@@ -345,7 +341,7 @@ int main() {
 	SqliteController sqlController("../ms.db");
 	std::cout << "-" <<std::endl;
 
-	//test_diffSpectrum_v3(&sqlController); // 293-297s -> 279-325s -> 297-323s
+	test_diffSpectrum_v3(&sqlController); // 293-297s -> 279-325s -> 297-323s
 
 	double timeFinish = (double)clock(); //结束时间
 	std::cout << "TotalRun:\t" << (timeFinish - timeStart) << std::endl;
