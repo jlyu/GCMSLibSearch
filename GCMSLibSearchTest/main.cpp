@@ -5,6 +5,64 @@
 #include "../GCMSLibSearch/SqliteController.h"
 #include "../GCMSLibSearch/match.h"
 
+void parseCompound(Compound& aCompound, unsigned int *x, float *y) {
+	const std::string strPeakData = aCompound._peakData;
+	const int peakCount = aCompound._peakCount;
+	
+	std::string::size_type i = 0;
+	std::string::size_type j = strPeakData.find(';');
+
+	for (int index = 0; index < peakCount; index++) {
+
+		std::string strXY = strPeakData.substr(i, j-i);
+		std::string::size_type w = strXY.find(' ');
+		std::string strX = strXY.substr(0, w);
+		std::string strY = strXY.substr(w+1, strXY.length());
+
+		x[index] = atoi(strX.c_str());
+		y[index] = (float)atoi(strY.c_str());
+
+		i = ++j;
+		j = strPeakData.find(';', j);
+	}
+	
+	// 直接获取最大质量数
+	aCompound._maxX = x[peakCount-1];
+
+}
+void parsePeak(Peak& aPeak, int aPeakMaxX, int* compoundIDs, int compoundIDindex,  unsigned int *x, float *y) {
+	const std::string strPeakData = aPeak._peakData;
+	const int peakCount = aPeak._peakCount;
+
+	std::string::size_type i = 0;
+	std::string::size_type j = strPeakData.find(';');
+
+	for (int index = 0; index < peakCount; index++) {
+
+		std::string strXY = strPeakData.substr(i, j-i);
+		std::string::size_type w = strXY.find(' ');
+		std::string strX = strXY.substr(0, w);
+		std::string strY = strXY.substr(w+1, strXY.length());
+
+		x[index] = atoi(strX.c_str());
+		y[index] = (float)atoi(strY.c_str());
+
+		i = ++j;
+		j = strPeakData.find(';', j);
+	}
+
+	// 直接获取最大质量数
+	int maxX = x[peakCount-1];
+	if (maxX == aPeakMaxX) {
+		//std::cout << compoundIDindex << " has MaxX = " << maxX << std::endl;
+		if (compoundIDs[compoundIDindex + 1] == 2) { 
+			compoundIDs[0]++;
+		}
+	}
+
+	
+
+}
 void parsePeakData(const std::string& strPeakData, int peakCount, unsigned int *x, float *y) {
 	
 	std::string::size_type i = 0;
@@ -28,10 +86,6 @@ void parsePeakData(const std::string& strPeakData, int peakCount, unsigned int *
 template <class T> void clearObject(T* obj) {
 	T tmp;
 	tmp.swap(*obj);
-	//obj->reserve(0);
-
-	//vTemp.reserve(vet.size());
-	//vTemp.swap(vet);
 }
 
 // Unit Test
@@ -153,18 +207,16 @@ void test_diffSpectrum_v3(SqliteController *pSqlController) {
 	double timeFinish = (double)clock();
 
 	// 【match compound】
-	Compound testCompound = pSqlController->getCompound(4); //190790
+	Compound testCompound = pSqlController->getCompound(7); //190790
 	const int matchPeakCount = testCompound._peakCount;
 	unsigned int* matchX = new unsigned int[matchPeakCount];
 	float* matchY = new float[matchPeakCount];
-	const std::string strPeakData = testCompound._peakData;
-	parsePeakData(strPeakData, matchPeakCount, matchX, matchY);
+	parseCompound(testCompound, matchX, matchY);
+	
 
 	// 【filtered compounds】
 	timeStart = (double)clock();
-	//std::set<int> compoundIDsSet;
-	int *compoundIDs = new int[COMPOUNDS_SIZES](); // [0] 存放个数
-	
+	int *compoundIDs = new int[COMPOUNDS_SIZES]();  // [0]存放个数
 	pSqlController->dq_filterPeakByTwoMass(testCompound, compoundIDs);
 	std::cout << compoundIDs[0] << " Found." << std::endl;
 	timeFinish = (double)clock();
@@ -178,43 +230,49 @@ void test_diffSpectrum_v3(SqliteController *pSqlController) {
 	// Search
 	timeStart = (double)clock();
 	std::vector<Peak> peaks;
-	pSqlController->dq_getPeakDatas_v2(compoundIDs, peaks); 
+	pSqlController->dq_getPeakDatas_v3(compoundIDs, peaks); 
 	timeFinish = (double)clock();
 	sqliteTime += timeFinish - timeStart;
 
+	//typedef std::vector<Peak>::iterator ITER;
+	//for(ITER it = peaks.begin(); it != peaks.end(); it++) {
 
-	typedef std::vector<Peak>::iterator ITER;
-	for(ITER it = peaks.begin(); it != peaks.end(); it++) {
-	//const size_t peakSize = peaks.size();
-	//for (size_t i = 0; i != peakSize; i++){
-	
-		Peak aPeak = (*it);
+	compoundIDs[0] = 0; 
+	const size_t peakSize = peaks.size();
+	for (size_t i = 0; i != peakSize; i++) {
+		
+		
+
+
 		// Parse String
 		timeStart = (double)clock();
-		//parsePeakData(aPeak._peakData, aPeak._peakCount, libX, libY);
+		//parsePeakData(peaks[i], compoundIDs, libX, libY);
+		int maxX = testCompound._maxX;
+		parsePeak(peaks[i], maxX, compoundIDs, i, libX, libY);
 		timeFinish = (double)clock();
 		parseTime += timeFinish - timeStart;
-
+		
 		// Diff Algorithm
 		timeStart = (double)clock();
-		unsigned int matchedDegree = DiffSpectrum(matchX, matchY, matchPeakCount, libX, libY, aPeak._peakCount);
+		//unsigned int matchedDegree = DiffSpectrum(matchX, matchY, matchPeakCount, libX, libY, peaks[i]._peakCount);
 		timeFinish = (double)clock();
 		diffSpectrumTime += timeFinish - timeStart;
 	}
 
-	delete [] compoundIDs;
-	delete [] libY;
-	delete [] libX;
-	delete [] matchY;
-	delete [] matchX;
-
+	std::cout << compoundIDs[0] << " Found." << std::endl;
 	std::cout << "FilterComps:\t"  << filterTime << std::endl;
 	std::cout << "CalMatchRate:\t" << diffSpectrumTime << std::endl;
 	std::cout << "ParseStrings:\t" << parseTime << std::endl;
 	std::cout << "SQLiteSearch:\t" << sqliteTime << std::endl;
 
 
-	peaks.clear();
+	peaks.clear(); //TODO:
+
+	delete [] compoundIDs;
+	delete [] libY;
+	delete [] libX;
+	delete [] matchY;
+	delete [] matchX;
 }
 void test_diffSpectrum_v4(SqliteController *pSqlController) {
 	// 无过滤 利用PeakData的索引表直接对所有数据一一 计算
@@ -287,7 +345,7 @@ int main() {
 	SqliteController sqlController("../ms.db");
 	std::cout << "-" <<std::endl;
 
-	test_diffSpectrum_v3(&sqlController); // 293-297s -> 279-325s -> 297-323s
+	//test_diffSpectrum_v3(&sqlController); // 293-297s -> 279-325s -> 297-323s
 
 	double timeFinish = (double)clock(); //结束时间
 	std::cout << "TotalRun:\t" << (timeFinish - timeStart) << std::endl;

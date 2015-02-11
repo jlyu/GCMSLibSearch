@@ -59,6 +59,7 @@ public:
 	int _massWeight;
 	std::string _casNo;
 	int _peakCount;
+	int _maxX; //最大质量数
 	std::string _peakData;
 };
 

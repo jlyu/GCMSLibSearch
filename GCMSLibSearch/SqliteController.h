@@ -30,6 +30,7 @@ public:
 	// 建
 	void SqliteController::createPeakDataTable(); // +Index
 	void SqliteController::dq_createMassHashTable(); // +Index
+	void SqliteController::dq_createCompoundTable(); //
 
 	// 查
 	int SqliteController::totalCompoundCounts(); //化合物总数
@@ -40,6 +41,7 @@ public:
 	std::vector<Peak> SqliteController::getPeakDatas(int startCompoundID, int limit);
 	void SqliteController::dq_getPeakDatas(std::set<int> &compoundIDsSet, std::vector<Peak>& peaks);
 	void SqliteController::dq_getPeakDatas_v2(int*, std::vector<Peak>& peaks);
+	void SqliteController::dq_getPeakDatas_v3(int*, std::vector<Peak>& peaks);
 	void SqliteController::getPeakPoints(int compoundID, /*int pointCount,*/ unsigned int* x, float* y);
 	void SqliteController::dq_getPeakPoints(int compoundID, /*int pointCount,*/ std::vector<PeakXY>& peakXYs);
 	void SqliteController::dq_getPeakPoints(/*std::set<int> &compoundIDsSet,*/ std::vector<PeakPoint>& peakPoints);
@@ -70,7 +72,7 @@ private:
 	void SqliteController::pre_parsePeakDate(); //把CompoundInfo表的PeakData字段数据解析存入PeakData表内
 	void SqliteController::pre_parsePeakDataString(const std::string& strPeakData, int peakCount, int *x, int *y);
 	void SqliteController::pre_parsePeakDataString(const std::string& strPeakData, int peakCount, std::vector<PeakPoint> &peakPoints);
-	void SqliteController::parseCompoundIDs(const std::string &strCompoundIDs, std::set<int> &compoundIDs);
+	//void SqliteController::parseCompoundIDs(const std::string &strCompoundIDs, std::set<int> &compoundIDs);
 	void SqliteController::parseCompoundIDs(const std::string &strCompoundIDs, int* compoundIDs);
 
 	static bool peakPointCompare(const PeakPoint &p1, const PeakPoint &p2) {  
