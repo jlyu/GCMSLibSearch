@@ -207,7 +207,7 @@ void test_diffSpectrum_v3(SqliteController *pSqlController) {
 	double timeFinish = (double)clock();
 
 	// °æmatch compound°ø
-	Compound testCompound = pSqlController->getCompound(4); //190790
+	Compound testCompound = pSqlController->getCompound(7); //190790
 	const int matchPeakCount = testCompound._peakCount;
 	unsigned int* matchX = new unsigned int[matchPeakCount];
 	float* matchY = new float[matchPeakCount];
@@ -226,7 +226,7 @@ void test_diffSpectrum_v3(SqliteController *pSqlController) {
 	filterTime += timeFinish - timeStart;
 	
 	// lib compound
-	const int maxPeakCount = 800; //pSqlController->maxPeakCount();
+	const int maxPeakCount = 800; //pSqlController->maxPeakCount(); 
 	unsigned int* libX = new unsigned int[maxPeakCount];
 	float* libY = new float[maxPeakCount];
 
@@ -337,11 +337,12 @@ void test_diffSpectrum_v4(SqliteController *pSqlController) {
 int main() {
 	
 	double timeStart = (double)clock(); 
-
-	SqliteController sqlController("../ms.db");
+	SqliteController nistController("../nist.db");
 	std::cout << "-" <<std::endl;
 
-	test_diffSpectrum_v3(&sqlController); // 293-297s -> 279-325s -> 297-323s
+	std::vector<Compound> compounds;
+
+	//test_diffSpectrum_v3(&sqlController); // 293-297s -> 279-325s -> 297-323s
 
 	double timeFinish = (double)clock(); //Ω· ¯ ±º‰
 	std::cout << "TotalRun:\t" << (timeFinish - timeStart) << std::endl;

@@ -6,7 +6,6 @@
 //#include "match.h"
 #include "SqliteController.h"
 
-
 //#define CREATE_TABLE_PEAKDATA	0
 #define COUNT_TOTAL_ROWS		0
 #define MAX_PEAK_COUNT			1
@@ -22,18 +21,20 @@
 
 #define MAX_Y_TO_X_EQUAL  1
 #define SUB_Y_TO_X_EQUAL  2
-#define MAX_X_EQUAL		  3
+#define FILTER_LIMIT      3  //滤过后几重交集
 
 
 // -Table
 #define CREATE_TABLE_PEAKDATA "CREATE TABLE IF NOT EXISTS [PeakData] ([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [CompoundID] INTEGER, [x] INTEGER, [y] INTEGER);"
 #define CREATE_TABLE_MASSHASH "CREATE TABLE IF NOT EXISTS [MassHash] ([Mass] INTEGER PRIMARY KEY, [IDs] CHAR);"
 #define CREATE_TABLE_COMPOUND "CREATE TABLE IF NOT EXISTS [Compound] ([CompoundID] INTEGER PRIMARY KEY, [CompoundName] CHAR, [Formula] CHAR(255), [MassWeight] INTEGER, [CasNo] CHAR(255), [PeakCount] INTEGER, [MaxX] INTEGER, [PeakData] CHAR);"
+#define CREATE_TABLE_FILTER	  "CREATE TABLE IF NOT EXISTS [Filter] ([CompoundID] INTEGER PRIMARY KEY, [X] INTEGER, [Y] INTEGER, [YrX] INTEGER);"
 // -Index
 #define CREATE_INDEX_X_ON_PEAKDATA "CREATE INDEX IF NOT EXISTS idx_x ON [PeakData] (x);"
-#define CREATE_INDEX_ID_ON_PEAKDATA "CREATE INDEX IF NOT EXISTS idx_id ON [PeakData] (CompoundID);"
+//#define CREATE_INDEX_ID_ON_PEAKDATA "CREATE INDEX IF NOT EXISTS idx_id ON [PeakData] (CompoundID);"
 #define CREATE_INDEX_MASSHASH "CREATE INDEX IF NOT EXISTS idx_mass ON [MassHash] (Mass);"
 #define CREATE_INDEX_MAXX_ON_COMPOUND "CREATE INDEX IF NOT EXISTS idx_maxx ON [Compound] (MaxX);"
+#define CREATE_INDEX_YRX_ON_FILTER "CREATE INDEX IF NOT EXISTS idx_yrx ON [Filter] (YrX)"
 // -Count
 #define COUNT_MASS_ROWS  "SELECT COUNT(Mass) FROM [MassHash]"
 // -Select
@@ -120,14 +121,14 @@ bool SqliteController::checkConnectionError() {
 
 // - 外部接口提供
 void SqliteController::preproccess() {
-	// -Create TABLE [PeakData] [MassHash]
-	createPeakDataTable(); 
-	dq_createMassHashTable();
-	dq_createCompoundTable();
+	// -Create TABLE [PeakData] [MassHash] 
+	//createPeakDataTable(); 
+	//dq_createMassHashTable();
+	//dq_createCompoundTable();
 
 	// -Fill in dates
-	pre_parsePeakDate();
-	dq_pre_buildMassHash();
+	//pre_parsePeakDate();
+	//dq_pre_buildMassHash();
 	//dq_pre_buildCompound();
 }
 void SqliteController::createPeakDataTable() {
@@ -146,7 +147,7 @@ void SqliteController::createPeakDataTable() {
 	sqlite3_finalize(statement);
 
 	// INDEX
-	rc = sqlite3_prepare_v2(_ppDB, CREATE_INDEX_ID_ON_PEAKDATA, -1, &statement, NULL);
+	rc = sqlite3_prepare_v2(_ppDB, CREATE_INDEX_X_ON_PEAKDATA, -1, &statement, NULL);
 	if (rc != SQLITE_OK) { }
 	rc = sqlite3_step(statement);
 	if (rc != SQLITE_DONE) {
@@ -295,7 +296,7 @@ void SqliteController::dq_getPeakDatas_v2(int* compoundIDs, std::vector<Peak>& p
 	int index = 0;
 	for(int i = 1; i < COUNT_COMPOUNDS; i++) { // 191438
 
-		if (compoundIDs[i] != 2 && i != COUNT_COMPOUNDS - 1) { continue; }
+		if (compoundIDs[i] != FILTER_LIMIT && i != COUNT_COMPOUNDS - 1) { continue; }
 
 		const int compoundID = i;
 		sprintf_s(c, "CompoundID = %d ", compoundID); 
@@ -724,31 +725,32 @@ void SqliteController::dq_pre_buildMassHash() {
 	sqlite3_stmt* statementPeakData;
 	const std::string queryPeakData = "SELECT [compoundID] FROM [PeakData] WHERE x = ?";
 	
-
 	sqlite3_stmt* statementMassHash;
 	const std::string insertMassHash = "INSERT OR REPLACE INTO [MassHash](Mass, IDs) VALUES (?, ?)";
 	
+	sqlite3_exec(_ppDB, "BEGIN;", 0, 0, 0);
+
 	for (int massIndex = 1; massIndex <= MAX_MASS; massIndex++) {
 
 		// 读取PeakData 中的对应关系
 		int count = 0;
 		double timeStart = (double)clock();
-		double timeFinish = (double)clock();
+		
 
 		std::string compoundIDs = "";
 
-		sqlite3_exec(_ppDB, "BEGIN;", 0, 0, 0);
+		
 		sqlite3_prepare_v2(_ppDB, queryPeakData.c_str(), queryPeakData.size(), &statementPeakData, NULL);
 		if (sqlite3_bind_int(statementPeakData, 1, massIndex) == SQLITE_OK) {
 
 			while (sqlite3_step(statementPeakData) == SQLITE_ROW) {
 
-				//compoundIDs += (const char*)sqlite3_column_text(statementPeakData, 0); 
-				//compoundIDs += ",";
-				//count++;
+				compoundIDs += (const char*)sqlite3_column_text(statementPeakData, 0); 
+				compoundIDs += ",";
+				count++;
 			}
 		}
-		sqlite3_exec(_ppDB, "COMMIT;", 0, 0, 0);
+		
 		sqlite3_finalize(statementPeakData);
 
 		// 存入MassHash
@@ -760,20 +762,19 @@ void SqliteController::dq_pre_buildMassHash() {
 				sqlite3_finalize(statementMassHash);
 		}
 
-		
+		double timeFinish = (double)clock();
 		std::cout << massIndex << " done ("<< count <<") "<< MAX_MASS - massIndex << " to go. =" << timeFinish-timeStart <<" ms" << std::endl;
-		
 	}
+
+	sqlite3_exec(_ppDB, "COMMIT;", 0, 0, 0);
 }
-void SqliteController::dq_pre_buildCompound() {
-	//读取所有 CompoundInfo 条目 解析计算出 MaxX 后，插入Compound 表内
-	std::vector<Compound> compounds;
-	//compounds.resize(COUNT_COMPOUNDS);
+void SqliteController::dq_pre_getCompoundInfo(std::vector<Compound> &compounds) {
+	//std::vector<Compound> compounds;
 
 	sqlite3_stmt *statement;
 	std::string query = "SELECT * FROM CompoundInfo ORDER BY CompoundID LIMIT ? OFFSET ?";
 	sqlite3_prepare_v2(_ppDB, query.c_str(), query.size(), &statement, NULL);
-	
+
 	const int slice = 10000;
 	const int pages = COUNT_COMPOUNDS / slice;
 	for (int page = 0; page != pages + 1; page++) {
@@ -799,9 +800,11 @@ void SqliteController::dq_pre_buildCompound() {
 		sqlite3_exec(_ppDB, "COMMIT;", 0, 0, 0);
 		sqlite3_reset(statement);
 	}
+}
+void SqliteController::dq_pre_buildCompound(std::vector<Compound> &compounds) {
 
-	// 存入 Compound 表
-	query = "INSERT OR REPLACE INTO Compound ([CompoundID], [CompoundName], [Formula], [MassWeight], [CasNo], [PeakCount], [MaxX], [PeakData])"
+	sqlite3_stmt *statement;
+	std::string query = "INSERT OR REPLACE INTO Compound ([CompoundID], [CompoundName], [Formula], [MassWeight], [CasNo], [PeakCount], [MaxX], [PeakData])"
 			" VALUES (?, ?, ?, ?, ?, ?, ?, ?);";
 	sqlite3_prepare_v2(_ppDB, query.c_str(), query.size(), &statement, NULL);
 
