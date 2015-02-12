@@ -13,7 +13,7 @@
 #endif
 
 
-#define PREPARED_STATEMENT_COUNT 9
+//#define PREPARED_STATEMENT_COUNT 9
 #define COUNT_COMPOUNDS 191438
 #define COMPOUNDS_SIZES 191439
 
@@ -25,12 +25,10 @@ public:
 
 //接口
 	// 预处理
-	void SqliteController::preproccess();
+	void SqliteController::pre_proccess();
 
 	// 建
-	void SqliteController::createPeakDataTable(); // +Index
-	void SqliteController::dq_createMassHashTable(); // +Index
-	void SqliteController::dq_createCompoundTable(); //
+	void SqliteController::createTable(const char* table, const char* index);
 
 	// 查
 	int SqliteController::totalCompoundCounts(); //化合物总数
@@ -80,7 +78,7 @@ public:
 
 private:
 	sqlite3* _ppDB;
-	sqlite3_stmt* _pStatements[PREPARED_STATEMENT_COUNT];
+	//sqlite3_stmt* _pStatements[PREPARED_STATEMENT_COUNT];
 
 	static bool peakPointCompare(const PeakPoint &p1, const PeakPoint &p2) {  return p1._y > p2._y; }  
 };
