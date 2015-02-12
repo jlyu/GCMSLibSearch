@@ -1,9 +1,6 @@
 #include <iostream>
-//#include <map>
 #include <algorithm>
-//#include <assert.h>
 #include "time.h"
-//#include "match.h"
 #include "SqliteController.h"
 
 #define MAX_MASS 1659
@@ -38,27 +35,14 @@
 #define INSERT_PEAK_DATA	  "INSERT OR REPLACE INTO [PeakData] ([CompoundID], [x], [y]) VALUES (?, ?, ?);"
 
 
-
 // -init & deinit
 SqliteController::SqliteController(const std::string &file): //可以分散成3个文件。但是库内部的表结构一致
 	_ppDB(NULL) { //TODO: 表必须已经存在
 
 		init_openSQLite(file); 
-
-		//for (size_t index = 0; index < PREPARED_STATEMENT_COUNT; index++) {
-		//	const std::string query = queries[index];
-		//	int rc = sqlite3_prepare_v2(_ppDB, query.c_str(), query.size(), &_pStatements[index], NULL);
-		//	if (rc != SQLITE_OK) {
-		//		std::cerr << "sqlite3_prepare_v2[" << rc << "] " << sqlite3_errmsg(_ppDB) << " " << sqlite3_errcode(_ppDB) << std::endl << query.c_str() << std::endl;
-		//	}
-		//}
-
 		pre_proccess();
 }
 SqliteController::~SqliteController(void) { 
-	//for (size_t index = 0; index < PREPARED_STATEMENT_COUNT; index ++) {
-	//	sqlite3_finalize(_pStatements[index]);
-	//}
 	sqlite3_close(_ppDB);
 }
 bool SqliteController::init_openSQLite(const std::string &file) {
@@ -70,7 +54,7 @@ bool SqliteController::init_openSQLite(const std::string &file) {
 		return false;
 	}
 
-	printf("open ---> OK \n\n");
+	printf("open --> OK \n\n");
 
 	return true;
 }
@@ -128,7 +112,6 @@ int SqliteController::totalCompoundCounts() {
 	sqlite3_stmt* statement; 
 	sqlite3_prepare_v2(_ppDB, COUNT_TOTAL_ROWS, -1, &statement, NULL);
 	return query_aSingleCount(statement);
-
 }
 int SqliteController::maxPeakCount() {
 
@@ -153,9 +136,9 @@ void SqliteController::getPeakData(int compoundID, Peak& aPeak) {
 	}
 
 	sqlite3_reset(statement);
-	
 }
 std::vector<Peak> SqliteController::getPeakDatas(int startCompoundID, int limit) {
+
 	std::vector<Peak> peaks;
 	sqlite3_stmt *statement;
 	sqlite3_prepare_v2(_ppDB, SELECT_PEAKDATA_BY_RANK, -1, &statement, NULL);
@@ -361,41 +344,6 @@ void SqliteController::getPeakPoints(int compoundID, unsigned int* x, float* y) 
 	sqlite3_exec(_ppDB, "COMMIT;", 0, 0, 0);
 	sqlite3_finalize(statement);
 }
-void SqliteController::dq_getPeakPoints(int compoundID, std::vector<PeakXY>& peakXYs) {
-	int rc;
-	sqlite3_stmt *statement;
-
-	//sqlite3_exec(_ppDB, "BEGIN;", 0, 0, 0);
-	
-
-
-	for (int i=1; i <= 1000; i++) { //TODO: 批量取
-		rc = sqlite3_prepare_v2(_ppDB, SELECT_XY_FROM_PEAKDATA, -1, &statement, NULL);
-
-		if (sqlite3_bind_int(statement, 1, i) == SQLITE_OK) {
-
-			//PeakXY aPeakXY;
-			int index = 0;
-			while (sqlite3_step(statement) == SQLITE_ROW) {
-
-				//aPeakXY._compoundID = i;
-				unsigned int x_ = static_cast<unsigned int>(sqlite3_column_int(statement, 0));
-				float y_ = static_cast<float>(sqlite3_column_int(statement, 1));
-
-				//aPeakXY._x[index] = x_;
-				//aPeakXY._y[index] = y_;
-
-				index++;
-			}
-
-			//peakXYs.push_back(aPeakXY);
-			sqlite3_reset(statement);
-		}
-	}
-
-	//sqlite3_exec(_ppDB, "COMMIT;", 0, 0, 0);
-	sqlite3_finalize(statement);
-}
 void SqliteController::dq_getPeakPoints(std::vector<PeakPoint>& peakPoints) {
 	int rc;
 	sqlite3_stmt* statement;
@@ -454,7 +402,6 @@ void SqliteController::storePeakData(const PeakPoint& aPoint) {
 			sqlite3_step(statement);
 			sqlite3_reset(statement);
 	}
-
 }
 // - 内部接口
 void SqliteController::queryCompoundData(std::vector<Compound> &selectedCompounds) {
@@ -757,6 +704,10 @@ void SqliteController::dq_pre_buildCompound(std::vector<Compound> &compounds) {
 	}
 	sqlite3_exec(_ppDB, "COMMIT;", 0, 0, 0);
 	
+}
+void SqliteController::dq_pre_buildFilter() {
+	// 取出20w记录，逐一解析，处理YrX, 排序前16数据 另插入maxX行 到Filter Table
+
 }
 void SqliteController::dq_filterPeakByTwoMass(const Compound &aCompound, int* compoundIDs) {
 

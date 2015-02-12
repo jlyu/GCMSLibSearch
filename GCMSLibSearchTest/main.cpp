@@ -301,8 +301,8 @@ void test_diffSpectrum_v4(SqliteController *pSqlController) {
 		// Search
 		timeStart = (double)clock();
 
-		std::vector<PeakXY> peakXYs;
-		pSqlController->dq_getPeakPoints(4, peakXYs);
+//		std::vector<PeakXY> peakXYs;
+//		pSqlController->dq_getPeakPoints(4, peakXYs);
 		//pSqlController->getPeakPoints(4, libX, libY);
 		 
 		timeFinish = (double)clock();
