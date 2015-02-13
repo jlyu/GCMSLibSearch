@@ -28,7 +28,7 @@
 // -Select
 #define SELECT_XY_FROM_PEAKDATA  "SELECT x, y FROM [PeakData] WHERE CompoundID = ?"
 #define SELECT_COUNT_MAX_PEAK "SELECT max(PeakCount) FROM CompoundInfo LIMIT 1"
-#define SELECT_COMPOUND_BY_ID "SELECT * FROM CompoundInfo WHERE CompoundID = ?"
+#define SELECT_COMPOUND_BY_ID "SELECT * FROM Compound WHERE CompoundID = ?"
 #define SELECT_PEAKDATA_BY_ID "SELECT PeakCount, PeakData FROM CompoundInfo WHERE CompoundID = ? LIMIT 1"
 #define SELECT_COMPOUND_BY_RANK "SELECT * FROM CompoundInfo ORDER BY CompoundID LIMIT ? OFFSET ?"
 #define SELECT_PEAKDATA_BY_RANK	"SELECT PeakCount, PeakData FROM CompoundInfo ORDER BY CompoundID LIMIT ? OFFSET ?"
@@ -78,13 +78,13 @@ void SqliteController::pre_proccess() {
 	//createTable(CREATE_TABLE_PEAKDATA, CREATE_INDEX_X_ON_PEAKDATA);
 	//createTable(CREATE_TABLE_MASSHASH, CREATE_INDEX_MASSHASH);
 	//createTable(CREATE_TABLE_COMPOUND, CREATE_INDEX_MAXX_ON_COMPOUND);
-	createTable(CREATE_TABLE_FILTER, CREATE_INDEX_X_ON_FILTER);
+	//createTable(CREATE_TABLE_FILTER, CREATE_INDEX_X_ON_FILTER);
 
 	// -Fill in dates
 	//pre_parsePeakDate();
 	//dq_pre_buildMassHash();
 	//dq_pre_buildCompound();
-	dq_pre_buildFilter();
+	//dq_pre_buildFilter();
 }
 void SqliteController::createTable(const char* tableName, const char* indexName) {
 	
@@ -289,7 +289,8 @@ Compound SqliteController::getCompound(int compoundID) {
 		aCompound._massWeight = sqlite3_column_int(statement, 3);
 		aCompound._casNo = (const char*)sqlite3_column_text(statement, 4);
 		aCompound._peakCount = sqlite3_column_int(statement, 5);
-		aCompound._peakData = (const char*)sqlite3_column_text(statement, 7); // Col 6 = `Comment`
+		aCompound._maxX = sqlite3_column_int(statement, 6);
+		aCompound._peakData = (const char*)sqlite3_column_text(statement, 7);
 	}
 	sqlite3_reset(statement);
 	return aCompound;
@@ -376,6 +377,7 @@ void SqliteController::dq_getPeakPoints(std::vector<PeakPoint>& peakPoints) {
 
 
 }
+
 // 存 / 改
 void SqliteController::storeCompound(const Compound& aCompound) {
 
@@ -852,4 +854,36 @@ void SqliteController::dq_filterPeakByMaxX(const int maxX, int* compoundIDs) {
 		}
 	}
 }
+void SqliteController::dq_filterPeakBy14(const std::vector<FilterPoint> &filterPoints, int* compoundIDs) {
+	// 按未知物质 14 个最高Y对应 X 在 Filter 取对应存在 14 个 X 的 CompoundID
 
+	sqlite3_stmt* statement;
+	char c[16];
+	std::string query = "SELECT [CompoundID] FROM Filter WHERE ";
+
+	const size_t pointSize = filterPoints.size();
+	for (size_t i = 0; i != pointSize; i++) {
+		const int X = filterPoints[i]._peakPoint._x;
+		sprintf_s(c, "X = %d ", X); 
+		query += c;
+		if (i != pointSize - 1)  { query += "OR "; }	
+	}
+	//std::cout << query.c_str() << std::endl;
+
+	sqlite3_prepare_v2(_ppDB, query.c_str(), query.size(), &statement, NULL);
+	while (sqlite3_step(statement) == SQLITE_ROW) {
+
+		int compoundID = sqlite3_column_int(statement, 0);
+		compoundIDs[compoundID]++;
+
+	}
+	sqlite3_finalize(statement);
+
+	for (int i = 1; i != COUNT_COMPOUNDS; i++) {
+		if (compoundIDs[i] == 14) {
+			compoundIDs[0]++;
+			std::cout << i << " Found" << std::endl;
+		}
+	}
+	std::cout << compoundIDs[0] << " TOGO" << std::endl;
+}

@@ -145,7 +145,49 @@ bool test_getPeakPoints(SqliteController *pSqlController) {
 	return true;
 }
 
+void test_filterCompounds_v1(SqliteController *pSqlController, const Compound& testCompound, int *compoundIDs) {
+	// -1 按 最大和次最大 Y 对应 X相等
+	// -2 按 最大X相等
+	static double filterTime = 0.0f;
+	double timeStart = (double)clock();
+	double timeFinish = (double)clock();
 
+	timeStart = (double)clock();
+	//int *compoundIDs = new int[COMPOUNDS_SIZES]();  // [0]存放个数
+	pSqlController->dq_filterPeakByTwoMass(testCompound, compoundIDs);
+	std::cout << "filterPeakByTwoMass:\t" << compoundIDs[0] << " to go" << std::endl;
+
+	pSqlController->dq_filterPeakByMaxX(testCompound._maxX, compoundIDs);
+	std::cout << "filterPeakByMaxX:\t" << compoundIDs[0] << " to go" << std::endl;
+
+	timeFinish = (double)clock();
+	filterTime += timeFinish - timeStart;
+	std::cout << "FilterComps:\t"  << filterTime << std::endl;
+}
+void test_filterCompounds_v2(SqliteController *pSqlController, const Compound& testCompound, int *compoundIDs) {
+	// 峰数 >=14 未知谱图中强度最大的14个峰（对应的X）要与谱库中谱图强度最大的14个峰（对应的X）相同
+	// 
+	//
+	static double filterTime = 0.0f;
+	double timeStart = (double)clock();
+	double timeFinish = (double)clock();
+
+	std::vector<FilterPoint> filterPoints;
+	std::string strPeakData = testCompound._peakData;
+	const int peakCount = testCompound._peakCount;
+	filterPoints.resize(peakCount);
+	pSqlController->pre_parsePeakDataString(strPeakData, peakCount, filterPoints);
+	nth_element(filterPoints.begin(), filterPoints.begin() + peakCount, filterPoints.end(), SqliteController::filterPointCompare_y);
+
+	
+	//
+	pSqlController->dq_filterPeakBy14(filterPoints, compoundIDs);
+
+
+	timeFinish = (double)clock();
+	filterTime += timeFinish - timeStart;
+	std::cout << "FilterComps:\t"  << filterTime << std::endl;
+}
 
 bool test_diffSpectrum_v1(SqliteController *pSqlController, int times) {
 	//批量从CompoundInfo表内读数据，解析字符串
@@ -205,71 +247,64 @@ void test_diffSpectrum_v3(SqliteController *pSqlController) {
 	static double diffSpectrumTime = 0.0f;
 	static double parseTime = 0.0f;
 	static double sqliteTime = 0.0f;
-	static double filterTime = 0.0f;
+	
 	double timeStart = (double)clock();
 	double timeFinish = (double)clock();
 
 	// 【match compound】
-	Compound testCompound = pSqlController->getCompound(7); //190790
+	Compound testCompound = pSqlController->getCompound(17512); //190790
 	const int matchPeakCount = testCompound._peakCount;
 	unsigned int* matchX = new unsigned int[matchPeakCount];
 	float* matchY = new float[matchPeakCount];
 	parseCompound(testCompound, matchX, matchY);
 	
 	// 【filtered compounds】
-	timeStart = (double)clock();
-	int *compoundIDs = new int[COMPOUNDS_SIZES]();  // [0]存放个数
-	pSqlController->dq_filterPeakByTwoMass(testCompound, compoundIDs);
-	std::cout << "filterPeakByTwoMass:\t" << compoundIDs[0] << " to go" << std::endl;
+	int *compoundIDs = new int[COUNT_COMPOUNDS](); // [0]存放个数
+	test_filterCompounds_v2(pSqlController, testCompound, compoundIDs);
 
-	pSqlController->dq_filterPeakByMaxX(testCompound._maxX, compoundIDs);
-	std::cout << "filterPeakByMaxX:\t" << compoundIDs[0] << " to go" << std::endl;
-
-	timeFinish = (double)clock();
-	filterTime += timeFinish - timeStart;
 	
-	// lib compound
-	const int maxPeakCount = 800; //pSqlController->maxPeakCount(); 
-	unsigned int* libX = new unsigned int[maxPeakCount];
-	float* libY = new float[maxPeakCount];
+	////// lib compound
+	////const int maxPeakCount = 800; //pSqlController->maxPeakCount(); 
+	////unsigned int* libX = new unsigned int[maxPeakCount];
+	////float* libY = new float[maxPeakCount];
 
-	// Search
-	timeStart = (double)clock();
-	std::vector<Peak> peaks;
-	pSqlController->dq_getPeakDatas_v2(compoundIDs, peaks); 
-	timeFinish = (double)clock();
-	sqliteTime += timeFinish - timeStart;
+	////// Search
+	////timeStart = (double)clock();
+	////std::vector<Peak> peaks;
+	////pSqlController->dq_getPeakDatas_v2(compoundIDs, peaks); 
+	////timeFinish = (double)clock();
+	////sqliteTime += timeFinish - timeStart;
 
-	//typedef std::vector<Peak>::iterator ITER;
-	//for(ITER it = peaks.begin(); it != peaks.end(); it++) {
+	//////typedef std::vector<Peak>::iterator ITER;
+	//////for(ITER it = peaks.begin(); it != peaks.end(); it++) {
 
-	const size_t peakSize = peaks.size();
-	for (size_t i = 0; i != peakSize; i++) {
-		
-		// Parse String
-		timeStart = (double)clock();
-		parsePeakData(peaks[i]._peakData, peaks[i]._peakCount, libX, libY);
-		timeFinish = (double)clock();
-		parseTime += timeFinish - timeStart;
-		
-		// Diff Algorithm
-		timeStart = (double)clock();
-		//unsigned int matchedDegree = DiffSpectrum(matchX, matchY, matchPeakCount, libX, libY, peaks[i]._peakCount);
-		timeFinish = (double)clock();
-		diffSpectrumTime += timeFinish - timeStart;
-	}
+	////const size_t peakSize = peaks.size();
+	////for (size_t i = 0; i != peakSize; i++) {
+	////	
+	////	// Parse String
+	////	timeStart = (double)clock();
+	////	parsePeakData(peaks[i]._peakData, peaks[i]._peakCount, libX, libY);
+	////	timeFinish = (double)clock();
+	////	parseTime += timeFinish - timeStart;
+	////	
+	////	// Diff Algorithm
+	////	timeStart = (double)clock();
+	////	//unsigned int matchedDegree = DiffSpectrum(matchX, matchY, matchPeakCount, libX, libY, peaks[i]._peakCount);
+	////	timeFinish = (double)clock();
+	////	diffSpectrumTime += timeFinish - timeStart;
+	////}
 
-	std::cout << "FilterComps:\t"  << filterTime << std::endl;
+	
 	std::cout << "CalMatchRate:\t" << diffSpectrumTime << std::endl;
 	std::cout << "ParseStrings:\t" << parseTime << std::endl;
 	std::cout << "SQLiteSearch:\t" << sqliteTime << std::endl;
 
 
-	peaks.clear(); //TODO:
+	//peaks.clear(); //TODO:
 
 	delete [] compoundIDs;
-	delete [] libY;
-	delete [] libX;
+//	delete [] libY;
+//	delete [] libX;
 	delete [] matchY;
 	delete [] matchX;
 }
@@ -343,19 +378,7 @@ int main() {
 	SqliteController nistController("../nist.db");
 	std::cout << "-" <<std::endl;
 
-
-	//std::vector<FilterPoint> filterPoints;
-	//std::string strPeakData = "27 170;41 590;55 999;69 500;83 350;97 260;109 40;135 80;148 150;150 150;162 60;164 60;218 60;220 60;";
-	//const int peakCount = 14;
-	//filterPoints.resize(peakCount);
-	//nistController.pre_parsePeakDataString(strPeakData, peakCount, filterPoints);
-	//nth_element(filterPoints.begin(), filterPoints.begin() + peakCount, filterPoints.end(), SqliteController::filterPointCompare_y);
-
-	////test_diffSpectrum_v3(&sqlController); // 293-297s -> 279-325s -> 297-323s
-
-	//for(size_t i=0; i<peakCount; i++) {
-	//	filterPoints[i].printXY();
-	//}
+	test_diffSpectrum_v3(&nistController); // 293-297s -> 279-325s -> 297-323s
 
 	double timeFinish = (double)clock(); //结束时间
 	std::cout << "TotalRun:\t" << (timeFinish - timeStart) << std::endl;

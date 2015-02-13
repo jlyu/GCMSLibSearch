@@ -14,8 +14,8 @@
 
 
 //
-#define COUNT_COMPOUNDS 191438
-#define COMPOUNDS_SIZES 191439
+#define COUNT_COMPOUNDS 191436
+#define COMPOUNDS_SIZES 191437
 
 class SqliteController {
 
@@ -57,6 +57,7 @@ public:
 
 	void SqliteController::dq_filterPeakByTwoMass(const Compound &aCompound, int* compoundIDs);
 	void SqliteController::dq_filterPeakByMaxX(const int maxX, int* compoundIDs);
+	void SqliteController::dq_filterPeakBy14(const std::vector<FilterPoint> &filterPoints, int* compoundIDs);
 
 	void SqliteController::dq_pre_buildMassHash();
 	void SqliteController::dq_pre_buildCompound(std::vector<Compound> &compounds);
