@@ -53,7 +53,7 @@ public:
 	
 	//Dirty & Quick
 	std::vector<int> SqliteController::dq_getAllPeakCounts();
-	void SqliteController::dq_pre_getCompoundInfo(std::vector<Compound> &compounds);
+	void SqliteController::dq_pre_getCompounds(std::vector<Compound> &compounds);
 
 	void SqliteController::dq_filterPeakByTwoMass(const Compound &aCompound, int* compoundIDs);
 	void SqliteController::dq_filterPeakByMaxX(const int maxX, int* compoundIDs);
@@ -69,13 +69,16 @@ public:
 	void SqliteController::pre_parsePeakDate(); //把CompoundInfo表的PeakData字段数据解析存入PeakData表内
 	void SqliteController::pre_parsePeakDataString(const std::string& strPeakData, int peakCount, int *x, int *y);
 	void SqliteController::pre_parsePeakDataString(const std::string& strPeakData, int peakCount, std::vector<PeakPoint> &peakPoints);
-	int  SqliteController::pre_parsePeakDataString(const std::string& strPeakData, int peakCount);
+	void SqliteController::pre_parsePeakDataString(const std::string& strPeakData, int peakCount, std::vector<FilterPoint> &filterPoints);
+	//int  SqliteController::pre_parsePeakDataString(const std::string& strPeakData, int peakCount);
 	void SqliteController::parseCompoundIDs(const std::string &strCompoundIDs, int* compoundIDs);
 
 
-private:
+
 	sqlite3* _ppDB;
 
 	static bool peakPointCompare(const PeakPoint &p1, const PeakPoint &p2) {  return p1._y > p2._y; }  
+	static bool filterPointCompare_y(const FilterPoint &p1, const FilterPoint &p2) {  return p1._peakPoint._y > p2._peakPoint._y; } 
+	static bool filterPointCompare(const FilterPoint &p1, const FilterPoint &p2) {  return p1._yrx > p2._yrx; } 
 };
 

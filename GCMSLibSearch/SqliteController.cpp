@@ -1,6 +1,8 @@
 #include <iostream>
 #include <algorithm>
+#include <math.h>
 #include "time.h"
+
 #include "SqliteController.h"
 
 #define MAX_MASS 1659
@@ -12,13 +14,14 @@
 #define CREATE_TABLE_PEAKDATA "CREATE TABLE IF NOT EXISTS [PeakData] ([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [CompoundID] INTEGER, [x] INTEGER, [y] INTEGER);"
 #define CREATE_TABLE_MASSHASH "CREATE TABLE IF NOT EXISTS [MassHash] ([Mass] INTEGER PRIMARY KEY, [IDs] CHAR);"
 #define CREATE_TABLE_COMPOUND "CREATE TABLE IF NOT EXISTS [Compound] ([CompoundID] INTEGER PRIMARY KEY, [CompoundName] CHAR, [Formula] CHAR(255), [MassWeight] INTEGER, [CasNo] CHAR(255), [PeakCount] INTEGER, [MaxX] INTEGER, [PeakData] CHAR);"
-#define CREATE_TABLE_FILTER	  "CREATE TABLE IF NOT EXISTS [Filter] ([CompoundID] INTEGER PRIMARY KEY, [X] INTEGER, [Y] INTEGER, [YrX] INTEGER);"
+#define CREATE_TABLE_FILTER	  "CREATE TABLE IF NOT EXISTS [Filter] ([CompoundID] INTEGER, [X] INTEGER, [Y] INTEGER, [YrX] INTEGER);"
 // -Index
 #define CREATE_INDEX_X_ON_PEAKDATA "CREATE INDEX IF NOT EXISTS idx_x ON [PeakData] (x);"
 //#define CREATE_INDEX_ID_ON_PEAKDATA "CREATE INDEX IF NOT EXISTS idx_id ON [PeakData] (CompoundID);"
 #define CREATE_INDEX_MASSHASH "CREATE INDEX IF NOT EXISTS idx_mass ON [MassHash] (Mass);"
 #define CREATE_INDEX_MAXX_ON_COMPOUND "CREATE INDEX IF NOT EXISTS idx_maxx ON [Compound] (MaxX);"
 #define CREATE_INDEX_YRX_ON_FILTER "CREATE INDEX IF NOT EXISTS idx_yrx ON [Filter] (YrX)"
+#define CREATE_INDEX_X_ON_FILTER "CREATE INDEX IF NOT EXISTS idx_x ON [Filter] (X)"
 // -Count
 #define COUNT_MASS_ROWS  "SELECT COUNT(Mass) FROM [MassHash]"
 #define COUNT_TOTAL_ROWS "SELECT COUNT(CompondID) FROM CompoundInfo"
@@ -33,6 +36,7 @@
 // -Insert
 #define INSERT_COMPOUND_DATA  "INSERT OR REPLACE INTO CompoundInfo ([CompoundID], [CompoundName], [Formula], [MassWeight], [CasNo], [PeakCount], [PeakData]) VALUES (?, ?, ?, ?, ?, ?, ?);"
 #define INSERT_PEAK_DATA	  "INSERT OR REPLACE INTO [PeakData] ([CompoundID], [x], [y]) VALUES (?, ?, ?);"
+#define INSERT_FILTER_DATA	  "INSERT OR REPLACE INTO [Filter] ([CompoundID], [X], [Y], [YrX]) VALUES (?, ?, ?, ?);"
 
 
 // -init & deinit
@@ -74,12 +78,13 @@ void SqliteController::pre_proccess() {
 	//createTable(CREATE_TABLE_PEAKDATA, CREATE_INDEX_X_ON_PEAKDATA);
 	//createTable(CREATE_TABLE_MASSHASH, CREATE_INDEX_MASSHASH);
 	//createTable(CREATE_TABLE_COMPOUND, CREATE_INDEX_MAXX_ON_COMPOUND);
-	//createTable(CREATE_TABLE_FILTER, CREATE_INDEX_YRX_ON_FILTER);
+	createTable(CREATE_TABLE_FILTER, CREATE_INDEX_X_ON_FILTER);
 
 	// -Fill in dates
 	//pre_parsePeakDate();
 	//dq_pre_buildMassHash();
 	//dq_pre_buildCompound();
+	dq_pre_buildFilter();
 }
 void SqliteController::createTable(const char* tableName, const char* indexName) {
 	
@@ -473,26 +478,52 @@ void SqliteController::pre_parsePeakDataString(const std::string& strPeakData, i
 
 	}
 }
-int SqliteController::pre_parsePeakDataString(const std::string& strPeakData, int peakCount) {
-
+void SqliteController::pre_parsePeakDataString(const std::string& strPeakData, int peakCount, std::vector<FilterPoint> &filterPoints) {
 	std::string::size_type i = 0;
 	std::string::size_type j = strPeakData.find(';');
 
 	for (int index = 0; index < peakCount; index++) {
 
-		if (index == peakCount - 1) {
-			std::string strXY = strPeakData.substr(i, j-i);
-			std::string::size_type w = strXY.find(' ');
-			std::string strX = strXY.substr(0, w);
-			std::string strY = strXY.substr(w+1, strXY.length());
+		std::string strXY = strPeakData.substr(i, j-i);
+		std::string::size_type w = strXY.find(' ');
+		std::string strX = strXY.substr(0, w);
+		std::string strY = strXY.substr(w+1, strXY.length());
 
-			return atoi(strX.c_str());
-		}
+		FilterPoint aFilterPoint;
+		int x_ = atoi(strX.c_str());
+		int y_ = atoi(strY.c_str());
+		int yrx_ = static_cast<int>(sqrt(x_ * 1.0f) * y_);
+ 
+		filterPoints[index]._peakPoint._x = x_;
+		filterPoints[index]._peakPoint._y = y_;
+		filterPoints[index]._yrx = yrx_;
+		//filterPoints.push_back(aFilterPoint);
 
 		i = ++j;
 		j = strPeakData.find(';', j);
+
 	}
 }
+//int SqliteController::pre_parsePeakDataString(const std::string& strPeakData, int peakCount) {
+//
+//	std::string::size_type i = 0;
+//	std::string::size_type j = strPeakData.find(';');
+//
+//	for (int index = 0; index < peakCount; index++) {
+//
+//		if (index == peakCount - 1) {
+//			std::string strXY = strPeakData.substr(i, j-i);
+//			std::string::size_type w = strXY.find(' ');
+//			std::string strX = strXY.substr(0, w);
+//			std::string strY = strXY.substr(w+1, strXY.length());
+//
+//			return atoi(strX.c_str());
+//		}
+//
+//		i = ++j;
+//		j = strPeakData.find(';', j);
+//	}
+//}
 void SqliteController::pre_parsePeakDate() {
 
 	sqlite3_exec(_ppDB, "BEGIN;", 0, 0, 0);
@@ -644,11 +675,10 @@ void SqliteController::dq_pre_buildMassHash() {
 
 	sqlite3_exec(_ppDB, "COMMIT;", 0, 0, 0);
 }
-void SqliteController::dq_pre_getCompoundInfo(std::vector<Compound> &compounds) {
-	//std::vector<Compound> compounds;
+void SqliteController::dq_pre_getCompounds(std::vector<Compound> &compounds) {
 
 	sqlite3_stmt *statement;
-	std::string query = "SELECT * FROM CompoundInfo ORDER BY CompoundID LIMIT ? OFFSET ?";
+	std::string query = "SELECT * FROM [Compound] ORDER BY CompoundID LIMIT ? OFFSET ?";
 	sqlite3_prepare_v2(_ppDB, query.c_str(), query.size(), &statement, NULL);
 
 	const int slice = 10000;
@@ -667,8 +697,9 @@ void SqliteController::dq_pre_getCompoundInfo(std::vector<Compound> &compounds) 
 					aCompound._massWeight = sqlite3_column_int(statement, 3);
 					aCompound._casNo = (const char*)sqlite3_column_text(statement, 4);
 					aCompound._peakCount = sqlite3_column_int(statement, 5);
-					aCompound._peakData = (const char*)sqlite3_column_text(statement, 7); // Col 6 = `Comment`
-					aCompound._maxX = pre_parsePeakDataString(aCompound._peakData, aCompound._peakCount);
+					aCompound._maxX = sqlite3_column_int(statement, 6);
+					aCompound._peakData = (const char*)sqlite3_column_text(statement, 7); 
+
 					compounds.push_back(aCompound);
 				}
 		}
@@ -707,7 +738,69 @@ void SqliteController::dq_pre_buildCompound(std::vector<Compound> &compounds) {
 }
 void SqliteController::dq_pre_buildFilter() {
 	// 取出20w记录，逐一解析，处理YrX, 排序前16数据 另插入maxX行 到Filter Table
+	std::vector<Compound> compounds;
+	dq_pre_getCompounds(compounds);
 
+	std::vector<FilterPoint> filterPoints;
+
+	const size_t compoundSize = compounds.size();
+	for (size_t i = 0; i != compoundSize; i++) {
+
+		const std::string &strPeakData = compounds[i]._peakData;
+		const int &peakCount = compounds[i]._peakCount;
+		const int &compoundID = compounds[i]._compoundID;
+
+		std::vector<FilterPoint> tmpFilterPoints;
+		tmpFilterPoints.resize(peakCount);
+		for (size_t j=0; j!=peakCount; j++) { tmpFilterPoints[j]._peakPoint._compoundID = compoundID; }
+
+		pre_parsePeakDataString(strPeakData, peakCount, tmpFilterPoints);
+
+		
+		FilterPoint aFilterPoint;
+		aFilterPoint._peakPoint._x = compounds[i]._maxX;
+		if (tmpFilterPoints[peakCount -1]._peakPoint._x == compounds[i]._maxX) {
+			aFilterPoint = tmpFilterPoints[peakCount -1];
+		}
+
+		if (peakCount < 16) {
+			nth_element(tmpFilterPoints.begin(), tmpFilterPoints.begin() + peakCount, tmpFilterPoints.end(), SqliteController::filterPointCompare); // 最大的16个 yrx
+			filterPoints.insert(filterPoints.end(), tmpFilterPoints.begin(), tmpFilterPoints.begin() + peakCount);
+		} else {
+			nth_element(tmpFilterPoints.begin(), tmpFilterPoints.begin() + 16, tmpFilterPoints.end(), SqliteController::filterPointCompare); // 最大的16个 yrx
+			filterPoints.insert(filterPoints.end(), tmpFilterPoints.begin(), tmpFilterPoints.begin() + 16);
+		}
+		
+		
+		//再插 MaxX 不重复
+		bool isPushBack = true;
+		for (size_t j=0; j!=16 && j!=peakCount; j++) {
+			if (tmpFilterPoints[j]._peakPoint._x == aFilterPoint._peakPoint._x) { isPushBack = false; }
+		}
+		if (isPushBack) { filterPoints.push_back(aFilterPoint); }
+	}
+
+	// Filter 表 3214346 行数据
+	sqlite3_stmt *statement;
+	sqlite3_prepare_v2(_ppDB, INSERT_FILTER_DATA, -1, &statement, NULL);
+
+	typedef std::vector<FilterPoint>::iterator ITER;
+	//const size_t filterPointsSize = filterPoints.size();
+
+	sqlite3_exec(_ppDB, "BEGIN;", NULL, NULL, NULL);
+	for (ITER it = filterPoints.begin(); it != filterPoints.end(); it++) {
+
+		if ((sqlite3_bind_int(statement, 1, (*it)._peakPoint._compoundID) == SQLITE_OK) &&
+			(sqlite3_bind_int(statement, 2, (*it)._peakPoint._x) == SQLITE_OK) &&
+			(sqlite3_bind_int(statement, 3, (*it)._peakPoint._y) == SQLITE_OK) &&
+			(sqlite3_bind_int(statement, 4, (*it)._yrx) == SQLITE_OK)) {
+
+				sqlite3_step(statement);
+				sqlite3_reset(statement);
+		}
+	}
+
+	sqlite3_exec(_ppDB, "COMMIT;", 0, 0, 0);
 }
 void SqliteController::dq_filterPeakByTwoMass(const Compound &aCompound, int* compoundIDs) {
 

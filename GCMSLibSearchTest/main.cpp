@@ -1,6 +1,7 @@
 #include <iostream>
 #include <set>
 #include <time.h>
+#include <algorithm>
 #include "../GCMSLibSearch/Compound.h"
 #include "../GCMSLibSearch/SqliteController.h"
 #include "../GCMSLibSearch/match.h"
@@ -143,6 +144,8 @@ bool test_getPeakPoints(SqliteController *pSqlController) {
 	std::cout << "1 times: dq_getPeakPoints() runtime: " << timeFinish - timeStart << " ms" << std::endl;
 	return true;
 }
+
+
 
 bool test_diffSpectrum_v1(SqliteController *pSqlController, int times) {
 	//批量从CompoundInfo表内读数据，解析字符串
@@ -340,9 +343,19 @@ int main() {
 	SqliteController nistController("../nist.db");
 	std::cout << "-" <<std::endl;
 
-	std::vector<Compound> compounds;
 
-	//test_diffSpectrum_v3(&sqlController); // 293-297s -> 279-325s -> 297-323s
+	//std::vector<FilterPoint> filterPoints;
+	//std::string strPeakData = "27 170;41 590;55 999;69 500;83 350;97 260;109 40;135 80;148 150;150 150;162 60;164 60;218 60;220 60;";
+	//const int peakCount = 14;
+	//filterPoints.resize(peakCount);
+	//nistController.pre_parsePeakDataString(strPeakData, peakCount, filterPoints);
+	//nth_element(filterPoints.begin(), filterPoints.begin() + peakCount, filterPoints.end(), SqliteController::filterPointCompare_y);
+
+	////test_diffSpectrum_v3(&sqlController); // 293-297s -> 279-325s -> 297-323s
+
+	//for(size_t i=0; i<peakCount; i++) {
+	//	filterPoints[i].printXY();
+	//}
 
 	double timeFinish = (double)clock(); //结束时间
 	std::cout << "TotalRun:\t" << (timeFinish - timeStart) << std::endl;

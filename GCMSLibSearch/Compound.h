@@ -15,10 +15,23 @@ public:
 class PeakPoint {
 public:
 	PeakPoint():_compoundID(0), _x(0), _y(0) { }
+	PeakPoint(int id):_compoundID(id), _x(0), _y(0) { }
 
     int _compoundID;
 	int _x;
 	int _y;
+};
+
+class FilterPoint {
+public:
+	FilterPoint(): _peakPoint(), _yrx(0) { }
+	FilterPoint(int id): _peakPoint(id), _yrx(0) { }
+
+	PeakPoint _peakPoint;
+	int _yrx;
+
+	void printXY() { std::cout <<"("<< _peakPoint._x << "," << _peakPoint._y <<")"<< std::endl; }
+	void printY() { std::cout << _peakPoint._y << std::endl; }
 };
 
 class Compound {
