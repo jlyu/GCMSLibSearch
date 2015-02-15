@@ -781,7 +781,7 @@ void SqliteController::dq_pre_buildFilter() {
 
 		if (peakCount >= 16) {
 			nth_element(tmpFilterPoints.begin(), tmpFilterPoints.begin() + peakCount, tmpFilterPoints.end(), SqliteController::filterPointCompare); // 最大的16个 yrx
-			for (int j = 0; j != 16; j++) { filterPoints[j] = j + 1; } // rank 编号
+			for (int j = 0; j != 16; j++) { tmpFilterPoints[j]._rank = j + 1; } // rank 编号
 			filterPoints.insert(filterPoints.end(), tmpFilterPoints.begin(), tmpFilterPoints.begin() + peakCount);
 		} 
 		
