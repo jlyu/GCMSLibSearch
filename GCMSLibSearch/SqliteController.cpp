@@ -77,16 +77,16 @@ bool SqliteController::checkConnectionError() {
 // - 外部接口提供
 void SqliteController::pre_proccess() {
 	// -Create TABLE [PeakData] [MassHash] [Compound]* [Filter]*
-	//createTable(CREATE_TABLE_PEAKDATA, CREATE_INDEX_X_ON_PEAKDATA);
-	//createTable(CREATE_TABLE_MASSHASH, CREATE_INDEX_MASSHASH);
-	//createTable(CREATE_TABLE_COMPOUND, CREATE_INDEX_MAXX_ON_COMPOUND);
-	createTable(CREATE_TABLE_FILTER, 2, CREATE_INDEX_X_ON_FILTER, CREATE_INDEX_RANK_ON_FILTER);
+	//createTable(CREATE_TABLE_PEAKDATA, 1, CREATE_INDEX_X_ON_PEAKDATA);
+	//createTable(CREATE_TABLE_MASSHASH, 1, CREATE_INDEX_MASSHASH);
+	//createTable(CREATE_TABLE_COMPOUND, 1, CREATE_INDEX_MAXX_ON_COMPOUND);
+	//createTable(CREATE_TABLE_FILTER, 2, CREATE_INDEX_X_ON_FILTER, CREATE_INDEX_RANK_ON_FILTER);
 
 	// -Fill in dates
 	//pre_parsePeakDate();
 	//dq_pre_buildMassHash();
 	//dq_pre_buildCompound();
-	//dq_pre_buildFilter();
+	dq_pre_buildFilter();
 }
 void SqliteController::createTable(const char* tableName, int indexNumber, ...) {
 	
@@ -103,15 +103,14 @@ void SqliteController::createTable(const char* tableName, int indexNumber, ...) 
 	}
 	sqlite3_finalize(statement);
 
-
-
+	// INDEX
 	va_list args;
 	va_start(args, indexNumber);
 
 	for (int i = 0; i < indexNumber; i++) {
 
 		const char* indexName = va_arg(args, const char*);
-		// INDEX
+		
 		rc = sqlite3_prepare_v2(_ppDB, indexName, -1, &statement, NULL);
 		if (rc != SQLITE_OK) { std::cerr << "create" << indexName << " failed. " << std::endl; }
 		rc = sqlite3_step(statement);
@@ -778,21 +777,21 @@ void SqliteController::dq_pre_buildFilter() {
 			aFilterPoint = tmpFilterPoints[peakCount -1];
 		}
 
-		if (peakCount < 16) {
+		// 凡少于16个峰，（3819个）不收录
+
+		if (peakCount >= 16) {
 			nth_element(tmpFilterPoints.begin(), tmpFilterPoints.begin() + peakCount, tmpFilterPoints.end(), SqliteController::filterPointCompare); // 最大的16个 yrx
+			for (int j = 0; j != 16; j++) { filterPoints[j] = j + 1; } // rank 编号
 			filterPoints.insert(filterPoints.end(), tmpFilterPoints.begin(), tmpFilterPoints.begin() + peakCount);
-		} else {
-			nth_element(tmpFilterPoints.begin(), tmpFilterPoints.begin() + 16, tmpFilterPoints.end(), SqliteController::filterPointCompare); // 最大的16个 yrx
-			filterPoints.insert(filterPoints.end(), tmpFilterPoints.begin(), tmpFilterPoints.begin() + 16);
-		}
+		} 
 		
 		
-		//再插 MaxX 不重复
-		bool isPushBack = true;
-		for (size_t j=0; j!=16 && j!=peakCount; j++) {
-			if (tmpFilterPoints[j]._peakPoint._x == aFilterPoint._peakPoint._x) { isPushBack = false; }
-		}
-		if (isPushBack) { filterPoints.push_back(aFilterPoint); }
+		////再插 MaxX 不重复
+		//bool isPushBack = true;
+		//for (size_t j=0; j!=16 && j!=peakCount; j++) {
+		//	if (tmpFilterPoints[j]._peakPoint._x == aFilterPoint._peakPoint._x) { isPushBack = false; }
+		//}
+		//if (isPushBack) { filterPoints.push_back(aFilterPoint); }
 	}
 
 	// Filter 表 3214346 行数据
@@ -808,7 +807,8 @@ void SqliteController::dq_pre_buildFilter() {
 		if ((sqlite3_bind_int(statement, 1, (*it)._peakPoint._compoundID) == SQLITE_OK) &&
 			(sqlite3_bind_int(statement, 2, (*it)._peakPoint._x) == SQLITE_OK) &&
 			(sqlite3_bind_int(statement, 3, (*it)._peakPoint._y) == SQLITE_OK) &&
-			(sqlite3_bind_int(statement, 4, (*it)._yrx) == SQLITE_OK)) {
+			(sqlite3_bind_int(statement, 4, (*it)._yrx) == SQLITE_OK) &&
+			(sqlite3_bind_int(statement, 5, (*it)._rank) == SQLITE_OK)) {
 
 				sqlite3_step(statement);
 				sqlite3_reset(statement);

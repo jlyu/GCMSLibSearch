@@ -24,11 +24,12 @@ public:
 
 class FilterPoint {
 public:
-	FilterPoint(): _peakPoint(), _yrx(0) { }
-	FilterPoint(int id): _peakPoint(id), _yrx(0) { }
+	FilterPoint(): _peakPoint(), _yrx(0), _rank(0) { }
+	FilterPoint(int id): _peakPoint(id), _yrx(0), _rank(0) { }
 
 	PeakPoint _peakPoint;
 	int _yrx;
+	int _rank;
 
 	void printXY() { std::cout <<"("<< _peakPoint._x << "," << _peakPoint._y <<")"<< std::endl; }
 	void printY() { std::cout << _peakPoint._y << std::endl; }
