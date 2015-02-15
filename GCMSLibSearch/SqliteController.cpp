@@ -3,6 +3,7 @@
 #include <math.h>
 #include "time.h"
 
+
 #include "SqliteController.h"
 
 #define MAX_MASS 1659
@@ -14,7 +15,7 @@
 #define CREATE_TABLE_PEAKDATA "CREATE TABLE IF NOT EXISTS [PeakData] ([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [CompoundID] INTEGER, [x] INTEGER, [y] INTEGER);"
 #define CREATE_TABLE_MASSHASH "CREATE TABLE IF NOT EXISTS [MassHash] ([Mass] INTEGER PRIMARY KEY, [IDs] CHAR);"
 #define CREATE_TABLE_COMPOUND "CREATE TABLE IF NOT EXISTS [Compound] ([CompoundID] INTEGER PRIMARY KEY, [CompoundName] CHAR, [Formula] CHAR(255), [MassWeight] INTEGER, [CasNo] CHAR(255), [PeakCount] INTEGER, [MaxX] INTEGER, [PeakData] CHAR);"
-#define CREATE_TABLE_FILTER	  "CREATE TABLE IF NOT EXISTS [Filter] ([CompoundID] INTEGER, [X] INTEGER, [Y] INTEGER, [YrX] INTEGER);"
+#define CREATE_TABLE_FILTER	  "CREATE TABLE IF NOT EXISTS [Filter] ([CompoundID] INTEGER, [X] INTEGER, [Y] INTEGER, [YrX] INTEGER, [Rank] INTEGER);"
 // -Index
 #define CREATE_INDEX_X_ON_PEAKDATA "CREATE INDEX IF NOT EXISTS idx_x ON [PeakData] (x);"
 //#define CREATE_INDEX_ID_ON_PEAKDATA "CREATE INDEX IF NOT EXISTS idx_id ON [PeakData] (CompoundID);"
@@ -22,6 +23,7 @@
 #define CREATE_INDEX_MAXX_ON_COMPOUND "CREATE INDEX IF NOT EXISTS idx_maxx ON [Compound] (MaxX);"
 #define CREATE_INDEX_YRX_ON_FILTER "CREATE INDEX IF NOT EXISTS idx_yrx ON [Filter] (YrX)"
 #define CREATE_INDEX_X_ON_FILTER "CREATE INDEX IF NOT EXISTS idx_x ON [Filter] (X)"
+#define CREATE_INDEX_RANK_ON_FILTER "CREATE INDEX IF NOT EXISTS idx_rank ON [Filter] (YrX, Rank)"
 // -Count
 #define COUNT_MASS_ROWS  "SELECT COUNT(Mass) FROM [MassHash]"
 #define COUNT_TOTAL_ROWS "SELECT COUNT(CompondID) FROM CompoundInfo"
@@ -78,7 +80,7 @@ void SqliteController::pre_proccess() {
 	//createTable(CREATE_TABLE_PEAKDATA, CREATE_INDEX_X_ON_PEAKDATA);
 	//createTable(CREATE_TABLE_MASSHASH, CREATE_INDEX_MASSHASH);
 	//createTable(CREATE_TABLE_COMPOUND, CREATE_INDEX_MAXX_ON_COMPOUND);
-	//createTable(CREATE_TABLE_FILTER, CREATE_INDEX_X_ON_FILTER);
+	createTable(CREATE_TABLE_FILTER, 2, CREATE_INDEX_X_ON_FILTER, CREATE_INDEX_RANK_ON_FILTER);
 
 	// -Fill in dates
 	//pre_parsePeakDate();
@@ -86,7 +88,7 @@ void SqliteController::pre_proccess() {
 	//dq_pre_buildCompound();
 	//dq_pre_buildFilter();
 }
-void SqliteController::createTable(const char* tableName, const char* indexName) {
+void SqliteController::createTable(const char* tableName, int indexNumber, ...) {
 	
 	int rc;
 	sqlite3_stmt* statement;
@@ -101,15 +103,26 @@ void SqliteController::createTable(const char* tableName, const char* indexName)
 	}
 	sqlite3_finalize(statement);
 
-	// INDEX
-	rc = sqlite3_prepare_v2(_ppDB, indexName, -1, &statement, NULL);
-	if (rc != SQLITE_OK) { std::cerr << "create" << indexName << " failed. " << std::endl; }
-	rc = sqlite3_step(statement);
-	if (rc != SQLITE_DONE) {
-		std::cerr << "create" << indexName << " -> sqlite3_step[" << rc << "] " << sqlite3_errmsg(_ppDB) << " " << sqlite3_errcode(_ppDB) << std::endl;
+
+
+	va_list args;
+	va_start(args, indexNumber);
+
+	for (int i = 0; i < indexNumber; i++) {
+
+		const char* indexName = va_arg(args, const char*);
+		// INDEX
+		rc = sqlite3_prepare_v2(_ppDB, indexName, -1, &statement, NULL);
+		if (rc != SQLITE_OK) { std::cerr << "create" << indexName << " failed. " << std::endl; }
+		rc = sqlite3_step(statement);
+		if (rc != SQLITE_DONE) {
+			std::cerr << "create" << indexName << " -> sqlite3_step[" << rc << "] " << sqlite3_errmsg(_ppDB) << " " << sqlite3_errcode(_ppDB) << std::endl;
+		}
+		sqlite3_finalize(statement);
+		checkConnectionError();
 	}
-	sqlite3_finalize(statement);
-	checkConnectionError();
+
+	va_end(args);
 }
 // ²é
 int SqliteController::totalCompoundCounts() { 
@@ -886,4 +899,7 @@ void SqliteController::dq_filterPeakBy14(const std::vector<FilterPoint> &filterP
 		}
 	}
 	std::cout << compoundIDs[0] << " TOGO" << std::endl;
+}
+void SqliteController::dq_filterPeakBy08(const std::vector<FilterPoint> &filterPoints, int* compoundIDs) {
+
 }

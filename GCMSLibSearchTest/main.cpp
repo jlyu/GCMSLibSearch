@@ -178,10 +178,11 @@ void test_filterCompounds_v2(SqliteController *pSqlController, const Compound& t
 	filterPoints.resize(peakCount);
 	pSqlController->pre_parsePeakDataString(strPeakData, peakCount, filterPoints);
 	nth_element(filterPoints.begin(), filterPoints.begin() + peakCount, filterPoints.end(), SqliteController::filterPointCompare_y);
-
+	std::vector<FilterPoint> nthPoints;
+	nthPoints.insert(nthPoints.end(), filterPoints.begin(), filterPoints.begin() + 14);
 	
 	//
-	pSqlController->dq_filterPeakBy14(filterPoints, compoundIDs);
+	pSqlController->dq_filterPeakBy14(nthPoints, compoundIDs);
 
 
 	timeFinish = (double)clock();
@@ -252,7 +253,7 @@ void test_diffSpectrum_v3(SqliteController *pSqlController) {
 	double timeFinish = (double)clock();
 
 	// °æmatch compound°ø
-	Compound testCompound = pSqlController->getCompound(17512); //190790
+	Compound testCompound = pSqlController->getCompound(6); //190790
 	const int matchPeakCount = testCompound._peakCount;
 	unsigned int* matchX = new unsigned int[matchPeakCount];
 	float* matchY = new float[matchPeakCount];
@@ -378,7 +379,7 @@ int main() {
 	SqliteController nistController("../nist.db");
 	std::cout << "-" <<std::endl;
 
-	test_diffSpectrum_v3(&nistController); // 293-297s -> 279-325s -> 297-323s
+	//test_diffSpectrum_v3(&nistController); // 293-297s -> 279-325s -> 297-323s
 
 	double timeFinish = (double)clock(); //Ω· ¯ ±º‰
 	std::cout << "TotalRun:\t" << (timeFinish - timeStart) << std::endl;

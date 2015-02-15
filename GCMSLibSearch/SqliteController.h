@@ -5,6 +5,7 @@
 #include "Compound.h"
 #include <vector>
 #include <set>
+#include <stdarg.h>
 
 #if defined(DEBUG) || defined(_DEBUG)
 #pragma comment(lib, "sqlite3_D.lib")
@@ -28,7 +29,7 @@ public:
 	void SqliteController::pre_proccess();
 
 	// 建
-	void SqliteController::createTable(const char* table, const char* index);
+	void SqliteController::createTable(const char* table, int indexNumber, ...); // 可带多个 index
 
 	// 查
 	int SqliteController::totalCompoundCounts(); //化合物总数
@@ -58,6 +59,7 @@ public:
 	void SqliteController::dq_filterPeakByTwoMass(const Compound &aCompound, int* compoundIDs);
 	void SqliteController::dq_filterPeakByMaxX(const int maxX, int* compoundIDs);
 	void SqliteController::dq_filterPeakBy14(const std::vector<FilterPoint> &filterPoints, int* compoundIDs);
+	void SqliteController::dq_filterPeakBy08(const std::vector<FilterPoint> &filterPoints, int* compoundIDs);
 
 	void SqliteController::dq_pre_buildMassHash();
 	void SqliteController::dq_pre_buildCompound(std::vector<Compound> &compounds);
