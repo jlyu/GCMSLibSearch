@@ -177,9 +177,9 @@ void test_filterCompounds_v2(SqliteController *pSqlController, const Compound& t
 	const int peakCount = testCompound._peakCount;
 	filterPoints.resize(peakCount);
 	pSqlController->pre_parsePeakDataString(strPeakData, peakCount, filterPoints);
-	nth_element(filterPoints.begin(), filterPoints.begin() + peakCount, filterPoints.end(), SqliteController::filterPointCompare_y);
+	nth_element(filterPoints.begin(), filterPoints.begin() + peakCount, filterPoints.end(), SqliteController::filterPointCompare_Y);
 	std::vector<FilterPoint> nthPoints;
-	nthPoints.insert(nthPoints.end(), filterPoints.begin(), filterPoints.begin() + 14);
+	nthPoints.insert(nthPoints.end(), filterPoints.begin(), filterPoints.begin() + 8);
 	
 	//
 	pSqlController->dq_filterPeakBy14(nthPoints, compoundIDs);
@@ -189,7 +189,37 @@ void test_filterCompounds_v2(SqliteController *pSqlController, const Compound& t
 	filterTime += timeFinish - timeStart;
 	std::cout << "FilterComps:\t"  << filterTime << std::endl;
 }
+void test_filterCompounds_v3(SqliteController *pSqlController, const Compound& unknownCompound, int *compoundIDs) {
 
+	// 未知峰 >=8, 未知峰 1-8 的X 对应落在 YrX排序后 8~15 个谱库峰的 X 范围内，范围外则滤除
+
+	std::string strPeakData = unknownCompound._peakData;
+	const int peakCount = unknownCompound._peakCount;
+	if (peakCount < 8) return;
+	
+	static double filterTime = 0.0f;
+	double timeStart = (double)clock();
+	double timeFinish = (double)clock();
+
+	// 从未知峰依次（1-8个峰）取上下限
+	const int filterPeakLimitNumbers = 8; //
+	std::vector<FilterPoint> unknownPeakPoints; 
+	unknownPeakPoints.resize(peakCount);
+	pSqlController->pre_parsePeakDataString(strPeakData, peakCount, unknownPeakPoints);
+	nth_element(unknownPeakPoints.begin(), 
+		unknownPeakPoints.begin() + filterPeakLimitNumbers, 
+		unknownPeakPoints.end(), 
+		SqliteController::filterPointCompare_YrX);
+
+	std::vector<FilterPoint> nthPoints;
+	nthPoints.insert(nthPoints.end(), unknownPeakPoints.begin(), unknownPeakPoints.begin() + filterPeakLimitNumbers);
+	//
+	pSqlController->dq_filterPeakBy08(nthPoints, compoundIDs);
+	
+	timeFinish = (double)clock();
+	filterTime += timeFinish - timeStart;
+	std::cout << "FilterComps:\t"  << filterTime << std::endl;
+}
 bool test_diffSpectrum_v1(SqliteController *pSqlController, int times) {
 	//批量从CompoundInfo表内读数据，解析字符串
 
@@ -253,15 +283,15 @@ void test_diffSpectrum_v3(SqliteController *pSqlController) {
 	double timeFinish = (double)clock();
 
 	// 【match compound】
-	Compound testCompound = pSqlController->getCompound(6); //190790
+	Compound testCompound = pSqlController->getCompound(43); //190790
 	const int matchPeakCount = testCompound._peakCount;
 	unsigned int* matchX = new unsigned int[matchPeakCount];
 	float* matchY = new float[matchPeakCount];
 	parseCompound(testCompound, matchX, matchY);
 	
 	// 【filtered compounds】
-	int *compoundIDs = new int[COUNT_COMPOUNDS](); // [0]存放个数
-	test_filterCompounds_v2(pSqlController, testCompound, compoundIDs);
+	int *compoundIDs = new int[MAX_COMPOUND_ID + 1](); // [0]存放个数
+	test_filterCompounds_v3(pSqlController, testCompound, compoundIDs);
 
 	
 	////// lib compound
@@ -379,7 +409,7 @@ int main() {
 	SqliteController nistController("../nist.db");
 	std::cout << "-" <<std::endl;
 
-	//test_diffSpectrum_v3(&nistController); // 293-297s -> 279-325s -> 297-323s
+	test_diffSpectrum_v3(&nistController); // 293-297s -> 279-325s -> 297-323s
 
 	double timeFinish = (double)clock(); //结束时间
 	std::cout << "TotalRun:\t" << (timeFinish - timeStart) << std::endl;

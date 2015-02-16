@@ -17,6 +17,7 @@
 //
 #define COUNT_COMPOUNDS 191436
 #define COMPOUNDS_SIZES 191437
+#define MAX_COMPOUND_ID 191438
 
 class SqliteController {
 
@@ -76,12 +77,14 @@ public:
 	//int  SqliteController::pre_parsePeakDataString(const std::string& strPeakData, int peakCount);
 	void SqliteController::parseCompoundIDs(const std::string &strCompoundIDs, int* compoundIDs);
 
+	
+
+	static bool peakPointCompare_Y(const PeakPoint &p1, const PeakPoint &p2) {  return p1._y > p2._y; }  
+	static bool filterPointCompare_X(const FilterPoint &p1, const FilterPoint &p2) {  return p1._peakPoint._x > p2._peakPoint._x; } 
+	static bool filterPointCompare_Y(const FilterPoint &p1, const FilterPoint &p2) {  return p1._peakPoint._y > p2._peakPoint._y; } 
+	static bool filterPointCompare_YrX(const FilterPoint &p1, const FilterPoint &p2) {  return p1._yrx > p2._yrx; } 
 
 
 	sqlite3* _ppDB;
-
-	static bool peakPointCompare(const PeakPoint &p1, const PeakPoint &p2) {  return p1._y > p2._y; }  
-	static bool filterPointCompare_y(const FilterPoint &p1, const FilterPoint &p2) {  return p1._peakPoint._y > p2._peakPoint._y; } 
-	static bool filterPointCompare(const FilterPoint &p1, const FilterPoint &p2) {  return p1._yrx > p2._yrx; } 
 };
 
