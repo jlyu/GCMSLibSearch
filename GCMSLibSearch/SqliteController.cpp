@@ -2,8 +2,6 @@
 #include <algorithm>
 #include <math.h>
 #include "time.h"
-
-
 #include "SqliteController.h"
 
 #define MAX_MASS 1659
@@ -151,7 +149,6 @@ void SqliteController::getPeakData(int compoundID, Peak& aPeak) {
 		aPeak._peakCount = sqlite3_column_int(statement, 0);
 		aPeak._peakData = (const char*)sqlite3_column_text(statement, 1);
 	}
-
 	sqlite3_reset(statement);
 }
 std::vector<Peak> SqliteController::getPeakDatas(int startCompoundID, int limit) {
@@ -181,7 +178,6 @@ std::vector<Peak> SqliteController::getPeakDatas(int startCompoundID, int limit)
 	return peaks;
 
 	/*
-
 	char sql[1024];
 	sprintf(sql, "SELECT PeakCount, PeakData FROM CompoundInfo ORDER BY CompoundID LIMIT %d OFFSET %d;", limit, startCompoundID);
 
@@ -201,7 +197,6 @@ std::vector<Peak> SqliteController::getPeakDatas(int startCompoundID, int limit)
 	}
 
 	sqlite3_free_table(pazResult);
-
 	sqlite3_exec(_ppDB, "COMMIT;", 0, 0, 0);*/
 }
 void SqliteController::dq_getPeakDatas_v2(int* compoundIDs, std::vector<Peak>& peaks) {
@@ -362,7 +357,7 @@ void SqliteController::getPeakPoints(int compoundID, unsigned int* x, float* y) 
 	sqlite3_exec(_ppDB, "COMMIT;", 0, 0, 0);
 	sqlite3_finalize(statement);
 }
-void SqliteController::dq_getPeakPoints(std::vector<PeakPoint>& peakPoints) {
+void SqliteController::dq_getPeakPoints(std::vector<PeakPoint>& peakPoints) { //TBD
 	int rc;
 	sqlite3_stmt* statement;
 	const std::string queryXY = "SELECT [x], [y] FROM [PeakData] WHERE CompoundID = ?";
@@ -427,7 +422,6 @@ void SqliteController::queryCompoundData(std::vector<Compound> &selectedCompound
 
 	if (!selectedCompounds.empty()) { selectedCompounds.clear(); }
 
-
 	//TODO: 实际检索数据代替随机测试数据
 	int randomID[20] = { 0 };
 	srand((unsigned)time(NULL));
@@ -489,7 +483,6 @@ void SqliteController::pre_parsePeakDataString(const std::string& strPeakData, i
 
 		i = ++j;
 		j = strPeakData.find(';', j);
-
 	}
 }
 void SqliteController::pre_parsePeakDataString(const std::string& strPeakData, int peakCount, std::vector<FilterPoint> &filterPoints) {
@@ -518,26 +511,7 @@ void SqliteController::pre_parsePeakDataString(const std::string& strPeakData, i
 
 	}
 }
-//int SqliteController::pre_parsePeakDataString(const std::string& strPeakData, int peakCount) {
-//
-//	std::string::size_type i = 0;
-//	std::string::size_type j = strPeakData.find(';');
-//
-//	for (int index = 0; index < peakCount; index++) {
-//
-//		if (index == peakCount - 1) {
-//			std::string strXY = strPeakData.substr(i, j-i);
-//			std::string::size_type w = strXY.find(' ');
-//			std::string strX = strXY.substr(0, w);
-//			std::string strY = strXY.substr(w+1, strXY.length());
-//
-//			return atoi(strX.c_str());
-//		}
-//
-//		i = ++j;
-//		j = strPeakData.find(';', j);
-//	}
-//}
+
 void SqliteController::pre_parsePeakDate() {
 
 	sqlite3_exec(_ppDB, "BEGIN;", 0, 0, 0);
@@ -656,11 +630,8 @@ void SqliteController::dq_pre_buildMassHash() {
 		// 读取PeakData 中的对应关系
 		int count = 0;
 		double timeStart = (double)clock();
-		
 
 		std::string compoundIDs = "";
-
-		
 		sqlite3_prepare_v2(_ppDB, queryPeakData.c_str(), queryPeakData.size(), &statementPeakData, NULL);
 		if (sqlite3_bind_int(statementPeakData, 1, massIndex) == SQLITE_OK) {
 
@@ -725,7 +696,8 @@ void SqliteController::dq_pre_getCompounds(std::vector<Compound> &compounds) {
 void SqliteController::dq_pre_buildCompound(std::vector<Compound> &compounds) {
 
 	sqlite3_stmt *statement;
-	std::string query = "INSERT OR REPLACE INTO Compound ([CompoundID], [CompoundName], [Formula], [MassWeight], [CasNo], [PeakCount], [MaxX], [PeakData])"
+	std::string query = "INSERT OR REPLACE INTO Compound "
+			" ([CompoundID], [CompoundName], [Formula], [MassWeight], [CasNo], [PeakCount], [MaxX], [PeakData])"
 			" VALUES (?, ?, ?, ?, ?, ?, ?, ?);";
 	sqlite3_prepare_v2(_ppDB, query.c_str(), query.size(), &statement, NULL);
 
@@ -770,7 +742,6 @@ void SqliteController::dq_pre_buildFilter() {
 
 		pre_parsePeakDataString(strPeakData, peakCount, tmpFilterPoints);
 
-		
 		FilterPoint aFilterPoint;
 		aFilterPoint._peakPoint._x = compounds[i]._maxX;
 		if (tmpFilterPoints[peakCount -1]._peakPoint._x == compounds[i]._maxX) {
@@ -904,108 +875,47 @@ void SqliteController::dq_filterPeakBy08(const std::vector<FilterPoint> &filterP
 	// 按未知物质 1-8 个最高Y对应 X 在 是否处于 Filter 取对应存在 8-16 个YrX最大对应的 X 的范围内
 	 
 	sqlite3_stmt* statement;
-	const std::string query = "SELECT CompoundID, X, Rank FROM Filter WHERE  (X <= ? OR X >= ?) AND (Rank >= ? AND Rank <= ?) ;"; 
+	const std::string query = "SELECT CompoundID, X, Rank FROM Filter WHERE  (X = ?) AND (Rank >= ? AND Rank <= ?);"; 
 	sqlite3_prepare_v2(_ppDB, query.c_str(), query.size(), &statement, NULL);
 
-	
-	int lower = INT_MAX;
-	int upper = 0;
 	const int filterPeakLimitNumbers = 8;
 	compoundIDs[0] = 0;
 
 	for (int i = 0; i != filterPeakLimitNumbers; i++) {
 
-		if (upper < filterPoints[i]._peakPoint._x) { upper = filterPoints[i]._peakPoint._x; }
-		if (lower > filterPoints[i]._peakPoint._x) { lower = filterPoints[i]._peakPoint._x; }
-
 		int filterTime = i + 1; //筛选的轮数
 		int filterLower = 1;
 		int filterUpper = filterTime + 7; // 若第1次，峰个数为1-8， 第N次，峰个数为1-N+7
 		int findCount = 0;
+		const int X = filterPoints[i]._peakPoint._x;
+		int countFound = 0;
 
-
-		if (i >= 1 ) {
-			for (int j=0; j<MAX_COMPOUND_ID; j++) {
-				if (compoundIDs[j] <= filterTime -1) {
-					compoundIDs[j] = -1;
-				}
-			}
-		}
-
-		
-
-
-		// 用 [lower, upper] 限定Filter 表的取值， lower <= X 和 X >= upper 必须同时至少存在1个
-		if ((sqlite3_bind_int(statement, 1, lower) == SQLITE_OK) && 
-			(sqlite3_bind_int(statement, 2, upper) == SQLITE_OK) && 
-			(sqlite3_bind_int(statement, 3, filterLower) == SQLITE_OK) && 
-			(sqlite3_bind_int(statement, 4, filterUpper) == SQLITE_OK)) {
+		if ((sqlite3_bind_int(statement, 1, X) == SQLITE_OK) && 
+			(sqlite3_bind_int(statement, 2, filterLower) == SQLITE_OK) && 
+			(sqlite3_bind_int(statement, 3, filterUpper) == SQLITE_OK)) {
 
 				while (sqlite3_step(statement) == SQLITE_ROW) {
 
-					/* compoundIDs[] 的状态：
-					                       -1 表示排除，不再考虑该情况
-										   100 表示 upper 符合
-										   -100 表示 lower 符合
-										   200 表示同时符合 upper 和 lower
-										   1-8 表示该峰符合条件，但要经过8个峰匹配
-										   8 表示该峰通过了筛选算法 */
+					// 直接取出来的CompoundID，不重复
 					int compoundID = sqlite3_column_int(statement, 0);
-			
-					if (compoundIDs[compoundID] == -1 || compoundIDs[compoundID] == filterTime) { continue; }
+					compoundIDs[compoundID]++;
+					countFound++;
 
-					int filterX = sqlite3_column_int(statement, 1);
-					int filterRank = sqlite3_column_int(statement, 2);
-
-					// 下限已有，判定是否存在上限
-					if (compoundIDs[compoundID] == -100) { 
-						if (filterX >= upper) {
-							
-								compoundIDs[compoundID] = filterTime;
-								findCount++;
-
-								//经过8轮筛选OK
-								if (filterTime == 8) { compoundIDs[0]++; }
-								continue;
-							
-						}
-					}
-
-					// 上限已有，判定是否存在下限
-					if (compoundIDs[compoundID] == 100) {
-						if (filterX <= lower) {
-							
-								compoundIDs[compoundID] = filterTime;
-								findCount++;
-
-								if (filterTime == 8) { compoundIDs[0]++; }
-								continue;
-						}
-					}
-
-					// 找下限
-					if (filterX <= lower) {
-						
-							compoundIDs[compoundID] = -100;
-							continue;
-						
-					}
-
-					// 找上限
-					if (filterX >= upper) {
-						
-							compoundIDs[compoundID] = 100;
-							continue;
-						
-					}
 				}
 		}
 		
 
 		sqlite3_reset(statement);
-		std::cout << findCount << " Found" << std::endl;
+		std::cout << countFound << " Found" << std::endl;
 	}
 
 	sqlite3_finalize(statement);
+
+	for (int i = 0; i < MAX_COMPOUND_ID; i++) {
+		if (compoundIDs[i] == filterPeakLimitNumbers) {
+			compoundIDs[0]++;
+		}
+		
+	}
 	std::cout << compoundIDs[0] << " Found at end" << std::endl;
 }
