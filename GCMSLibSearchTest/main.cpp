@@ -218,7 +218,7 @@ void test_filterCompounds_v3(SqliteController *pSqlController, const Compound& u
 	
 	timeFinish = (double)clock();
 	filterTime += timeFinish - timeStart;
-	std::cout << "FilterComps:\t"  << filterTime << std::endl;
+	//std::cout << "FilterComps:\t"  << filterTime << std::endl;
 }
 bool test_diffSpectrum_v1(SqliteController *pSqlController, int times) {
 	//批量从CompoundInfo表内读数据，解析字符串
@@ -271,7 +271,7 @@ bool test_diffSpectrum_v2(SqliteController *pSqlController, int times) {
 	//diffSpectrumTime += timeFinish - timeStart;
 	return false;
 }
-void test_diffSpectrum_v3(SqliteController *pSqlController) {
+void test_diffSpectrum_v3(SqliteController *pSqlController, int compoundID) {
 	
 	// 利用 x-ids 哈希表先过滤化合物 然后单条查询 解析 计算
 
@@ -283,7 +283,7 @@ void test_diffSpectrum_v3(SqliteController *pSqlController) {
 	double timeFinish = (double)clock();
 
 	// 【match compound】
-	Compound testCompound = pSqlController->getCompound(43); //190790
+	Compound testCompound = pSqlController->getCompound(compoundID); //190790
 	const int matchPeakCount = testCompound._peakCount;
 	unsigned int* matchX = new unsigned int[matchPeakCount];
 	float* matchY = new float[matchPeakCount];
@@ -294,36 +294,36 @@ void test_diffSpectrum_v3(SqliteController *pSqlController) {
 	test_filterCompounds_v3(pSqlController, testCompound, compoundIDs);
 
 	
-	////// lib compound
-	////const int maxPeakCount = 800; //pSqlController->maxPeakCount(); 
-	////unsigned int* libX = new unsigned int[maxPeakCount];
-	////float* libY = new float[maxPeakCount];
+	// lib compound
+	const int maxPeakCount = 800; //pSqlController->maxPeakCount(); 
+	unsigned int* libX = new unsigned int[maxPeakCount];
+	float* libY = new float[maxPeakCount];
 
-	////// Search
-	////timeStart = (double)clock();
-	////std::vector<Peak> peaks;
-	////pSqlController->dq_getPeakDatas_v2(compoundIDs, peaks); 
-	////timeFinish = (double)clock();
-	////sqliteTime += timeFinish - timeStart;
+	// Search
+	timeStart = (double)clock();
+	std::vector<Peak> peaks;
+	pSqlController->dq_getPeakDatas_v2(compoundIDs, peaks); 
+	timeFinish = (double)clock();
+	sqliteTime += timeFinish - timeStart;
 
-	//////typedef std::vector<Peak>::iterator ITER;
-	//////for(ITER it = peaks.begin(); it != peaks.end(); it++) {
+	////typedef std::vector<Peak>::iterator ITER;
+	////for(ITER it = peaks.begin(); it != peaks.end(); it++) {
 
-	////const size_t peakSize = peaks.size();
-	////for (size_t i = 0; i != peakSize; i++) {
+	const size_t peakSize = peaks.size();
+	for (size_t i = 0; i != peakSize; i++) {
+
+		// Parse String
+		timeStart = (double)clock();
+		parsePeakData(peaks[i]._peakData, peaks[i]._peakCount, libX, libY);
+		timeFinish = (double)clock();
+		parseTime += timeFinish - timeStart;
 	////	
-	////	// Parse String
-	////	timeStart = (double)clock();
-	////	parsePeakData(peaks[i]._peakData, peaks[i]._peakCount, libX, libY);
-	////	timeFinish = (double)clock();
-	////	parseTime += timeFinish - timeStart;
-	////	
-	////	// Diff Algorithm
-	////	timeStart = (double)clock();
-	////	//unsigned int matchedDegree = DiffSpectrum(matchX, matchY, matchPeakCount, libX, libY, peaks[i]._peakCount);
-	////	timeFinish = (double)clock();
-	////	diffSpectrumTime += timeFinish - timeStart;
-	////}
+		// Diff Algorithm
+		timeStart = (double)clock();
+		unsigned int matchedDegree = DiffSpectrum(matchX, matchY, matchPeakCount, libX, libY, peaks[i]._peakCount);
+		timeFinish = (double)clock();
+		diffSpectrumTime += timeFinish - timeStart;
+	}
 
 	
 	std::cout << "CalMatchRate:\t" << diffSpectrumTime << std::endl;
@@ -331,11 +331,11 @@ void test_diffSpectrum_v3(SqliteController *pSqlController) {
 	std::cout << "SQLiteSearch:\t" << sqliteTime << std::endl;
 
 
-	//peaks.clear(); //TODO:
+	peaks.clear(); //TODO:
 
 	delete [] compoundIDs;
-//	delete [] libY;
-//	delete [] libX;
+	delete [] libY;
+	delete [] libX;
 	delete [] matchY;
 	delete [] matchX;
 }
@@ -405,14 +405,32 @@ void test_diffSpectrum_v4(SqliteController *pSqlController) {
 
 int main() {
 	
-	double timeStart = (double)clock(); 
+	 
 	SqliteController nistController("../nist.db");
 	std::cout << "-" <<std::endl;
 
-	test_diffSpectrum_v3(&nistController); // 293-297s -> 279-325s -> 297-323s
+	int maxIndex = 0;
+	double maxRunTime = 0.0f;
 
-	double timeFinish = (double)clock(); //结束时间
-	std::cout << "TotalRun:\t" << (timeFinish - timeStart) << std::endl;
+	for (int i = 11900; i < MAX_COMPOUND_ID; i++) {
+
+		double timeStart = (double)clock();
+
+		test_diffSpectrum_v3(&nistController, i); 
+
+		double timeFinish = (double)clock(); //结束时间
+
+		if (maxRunTime < (timeFinish - timeStart)) {
+			maxRunTime = (timeFinish - timeStart);
+			maxIndex = i;
+		}
+		std::cout << "CompoundID:\t" << i << "\t runtime: "<< (timeFinish - timeStart) << "\t max: "<< maxRunTime << "  id: "<< maxIndex << std::endl;
+
+	}
+	
+	  
+
+//	std::cout << "TotalRun:\t" << (timeFinish - timeStart) << std::endl;
 	system("PAUSE");
 	return 0;
 }

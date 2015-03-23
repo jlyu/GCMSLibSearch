@@ -878,7 +878,7 @@ void SqliteController::dq_filterPeakBy08(const std::vector<FilterPoint> &filterP
 	const std::string query = "SELECT CompoundID, X, Rank FROM Filter WHERE  (X = ?) AND (Rank >= ? AND Rank <= ?);"; 
 	sqlite3_prepare_v2(_ppDB, query.c_str(), query.size(), &statement, NULL);
 
-	const int filterPeakLimitNumbers = 8;
+	const int filterPeakLimitNumbers = 2; // ¹ýÂËÂÖÊý
 	compoundIDs[0] = 0;
 
 	for (int i = 0; i != filterPeakLimitNumbers; i++) {
@@ -900,13 +900,11 @@ void SqliteController::dq_filterPeakBy08(const std::vector<FilterPoint> &filterP
 					int compoundID = sqlite3_column_int(statement, 0);
 					compoundIDs[compoundID]++;
 					countFound++;
-
 				}
 		}
-		
 
 		sqlite3_reset(statement);
-		std::cout << countFound << " Found" << std::endl;
+		//std::cout << countFound << " Found" << std::endl;
 	}
 
 	sqlite3_finalize(statement);
@@ -917,5 +915,5 @@ void SqliteController::dq_filterPeakBy08(const std::vector<FilterPoint> &filterP
 		}
 		
 	}
-	std::cout << compoundIDs[0] << " Found at end" << std::endl;
+	//std::cout << compoundIDs[0] << "\t Found. ";
 }
