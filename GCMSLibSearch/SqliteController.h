@@ -1,5 +1,4 @@
 #pragma once
-
 //#include "StdAfx.h" //
 #include "sqlite3.h"
 #include "Compound.h"
@@ -19,13 +18,25 @@
 #define COMPOUNDS_SIZES 191437
 #define MAX_COMPOUND_ID 191438
 
-class SqliteController {
 
+// 导出 DLL 类
+#define LIBMANAGER_EXPORTS
+#ifdef LIBMANAGER_EXPORTS
+#define LIBMANAGER_API __declspec(dllexport)
+#else
+#define LIBMANAGER_API __declspec(dllimport) 
+#endif
+
+class LIBMANAGER_API SqliteController {
 public:
 	SqliteController(const std::string &file);
 	~SqliteController(void);
 
+
 //接口
+	void SqliteController::libSearch(Compound aCompound, std::vector<Compound> matchedCompounds);
+
+
 	// 预
 	void SqliteController::pre_proccess();
 
@@ -61,6 +72,7 @@ public:
 	void SqliteController::dq_filterPeakByMaxX(const int maxX, int* compoundIDs);
 	void SqliteController::dq_filterPeakBy14(const std::vector<FilterPoint> &filterPoints, int* compoundIDs);
 	void SqliteController::dq_filterPeakBy08(const std::vector<FilterPoint> &filterPoints, int* compoundIDs);
+	void SqliteController::dq_filterCompounds(const Compound& unknownCompound, int *compoundIDs);
 
 	void SqliteController::dq_pre_buildMassHash();
 	void SqliteController::dq_pre_buildCompound(std::vector<Compound> &compounds);
@@ -76,7 +88,8 @@ public:
 	void SqliteController::pre_parsePeakDataString(const std::string& strPeakData, int peakCount, std::vector<FilterPoint> &filterPoints);
 	//int  SqliteController::pre_parsePeakDataString(const std::string& strPeakData, int peakCount);
 	void SqliteController::parseCompoundIDs(const std::string &strCompoundIDs, int* compoundIDs);
-
+	void SqliteController::parseCompound(Compound& aCompound, unsigned int *x, float *y);
+	void SqliteController::parsePeakData(const std::string& strPeakData, int peakCount, unsigned int *x, float *y);
 	
 
 	static bool peakPointCompare_Y(const PeakPoint &p1, const PeakPoint &p2) {  return p1._y > p2._y; }  

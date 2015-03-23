@@ -53,5 +53,6 @@ public:
 	int _peakCount;
 	int _maxX; //最大质量数
 	std::string _peakData;
+	int _matchDegree; //匹配度
 };
 

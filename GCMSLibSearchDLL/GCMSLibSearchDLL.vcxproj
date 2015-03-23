@@ -20,6 +20,7 @@
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v90</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
@@ -54,6 +55,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>matchdll.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -76,13 +78,12 @@
   <ItemGroup>
     <ClCompile Include="..\GCMSLibSearch\Compound.cpp" />
     <ClCompile Include="..\GCMSLibSearch\SqliteController.cpp" />
-    <ClCompile Include="LibManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\GCMSLibSearch\Compound.h" />
+    <ClInclude Include="..\GCMSLibSearch\match.h" />
     <ClInclude Include="..\GCMSLibSearch\sqlite3.h" />
     <ClInclude Include="..\GCMSLibSearch\SqliteController.h" />
-    <ClInclude Include="LibManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

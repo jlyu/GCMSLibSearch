@@ -1,10 +1,13 @@
+
+
 #include <iostream>
 #include <set>
 #include <time.h>
 #include <algorithm>
 #include "../GCMSLibSearch/Compound.h"
-#include "../GCMSLibSearch/SqliteController.h"
 #include "../GCMSLibSearch/match.h"
+#include "../GCMSLibSearch/SqliteController.h"
+
 
 void parseCompound(Compound& aCompound, unsigned int *x, float *y) {
 	const std::string strPeakData = aCompound._peakData;
@@ -88,6 +91,9 @@ template <class T> void clearObject(T* obj) {
 	T tmp;
 	tmp.swap(*obj);
 }
+
+
+
 
 // Unit Test
 bool test_totalCompoundCounts(SqliteController *pSqlController) {
@@ -403,8 +409,14 @@ void test_diffSpectrum_v4(SqliteController *pSqlController) {
 
 
 
+void test_dll_libSearch() {
+	SqliteController nistController("../nist.db");
+	Compound aCompound;
+	std::vector<Compound> compounds;
+	nistController.libSearch(aCompound, compounds);
+}
+
 int main() {
-	
 	 
 	SqliteController nistController("../nist.db");
 	std::cout << "-" <<std::endl;
@@ -412,7 +424,7 @@ int main() {
 	int maxIndex = 0;
 	double maxRunTime = 0.0f;
 
-	for (int i = 11900; i < MAX_COMPOUND_ID; i++) {
+	for (int i = 3; i < 10; i++) {
 
 		double timeStart = (double)clock();
 
@@ -427,10 +439,9 @@ int main() {
 		std::cout << "CompoundID:\t" << i << "\t runtime: "<< (timeFinish - timeStart) << "\t max: "<< maxRunTime << "  id: "<< maxIndex << std::endl;
 
 	}
-	
-	  
 
-//	std::cout << "TotalRun:\t" << (timeFinish - timeStart) << std::endl;
+
+	//test_dll_libSearch(); 
 	system("PAUSE");
 	return 0;
 }
