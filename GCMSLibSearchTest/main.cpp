@@ -1,5 +1,3 @@
-
-
 #include <iostream>
 #include <set>
 #include <time.h>
@@ -323,14 +321,30 @@ void test_diffSpectrum_v3(SqliteController *pSqlController, int compoundID) {
 		parsePeakData(peaks[i]._peakData, peaks[i]._peakCount, libX, libY);
 		timeFinish = (double)clock();
 		parseTime += timeFinish - timeStart;
-	////	
+
+	
 		// Diff Algorithm
 		timeStart = (double)clock();
-		unsigned int matchedDegree = DiffSpectrum(matchX, matchY, matchPeakCount, libX, libY, peaks[i]._peakCount);
+		peaks[i]._matchDegree = DiffSpectrum(matchX, matchY, matchPeakCount, libX, libY, peaks[i]._peakCount);
 		timeFinish = (double)clock();
 		diffSpectrumTime += timeFinish - timeStart;
+		//std::cout << "--matchedDegree:\t" << matchedDegree << std::endl;
 	}
 
+	// - Get result
+	nth_element(peaks.begin(), 
+		peaks.begin() + peaks.size() - 1, 
+		peaks.end(), 
+		SqliteController::peakCompare_MatchDegree);
+
+	std::vector<Compound> compounds;
+	for (size_t j = 0; j < 20 && j != peaks.size(); j++) {
+		int compoundID = peaks[j]._compoundID;
+		Compound aCompound = pSqlController->getCompound(compoundID);
+		aCompound._matchDegree = peaks[j]._matchDegree;
+		compounds.push_back(aCompound);
+	}
+	
 	
 	std::cout << "CalMatchRate:\t" << diffSpectrumTime << std::endl;
 	std::cout << "ParseStrings:\t" << parseTime << std::endl;

@@ -21,6 +21,9 @@
     <ClCompile Include="..\GCMSLibSearch\Compound.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="..\GCMSLibSearch\SqliteController.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\GCMSLibSearch\Compound.h">

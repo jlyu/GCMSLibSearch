@@ -51,7 +51,7 @@ public:
 	void SqliteController::queryCompoundData(std::vector<Compound> &selectedCompounds);
 	void SqliteController::getPeakData(int compoundID, Peak &aPeak); //按ID获得对应化合物丰度数据
 	std::vector<Peak> getPeakDatas(int startCompoundID, int limit);
-	void SqliteController::dq_getPeakDatas(std::set<int> &compoundIDsSet, std::vector<Peak>& peaks);
+	//void SqliteController::dq_getPeakDatas(std::set<int> &compoundIDsSet, std::vector<Peak>& peaks);
 	void SqliteController::dq_getPeakDatas_v2(int*, std::vector<Peak>& peaks);
 	void SqliteController::dq_getPeakDatas_v3(int*, std::vector<Peak>& peaks);
 	void SqliteController::getPeakPoints(int compoundID, unsigned int* x, float* y);
@@ -91,13 +91,30 @@ public:
 	void SqliteController::parseCompound(Compound& aCompound, unsigned int *x, float *y);
 	void SqliteController::parsePeakData(const std::string& strPeakData, int peakCount, unsigned int *x, float *y);
 	
-
+	static bool peakCompare_MatchDegree(const Peak &p1, const Peak &p2) { return p1._matchDegree > p2._matchDegree; }
 	static bool peakPointCompare_Y(const PeakPoint &p1, const PeakPoint &p2) {  return p1._y > p2._y; }  
 	static bool filterPointCompare_X(const FilterPoint &p1, const FilterPoint &p2) {  return p1._peakPoint._x > p2._peakPoint._x; } 
 	static bool filterPointCompare_Y(const FilterPoint &p1, const FilterPoint &p2) {  return p1._peakPoint._y > p2._peakPoint._y; } 
 	static bool filterPointCompare_YrX(const FilterPoint &p1, const FilterPoint &p2) {  return p1._yrx > p2._yrx; } 
-
+	 
 
 	sqlite3* _ppDB;
 };
 
+
+/* 数据库结构
+
+Compound表：
+	CompoundID	INTEGER	INTEGER	0	0	False				0	0
+	CompoundName	CHAR	CHAR	0	0	False				1	1
+	Formula	CHAR(255)	CHAR	255	0	False				2	2
+	MassWeight	INTEGER	INTEGER	0	0	False				3	3
+	CasNo	CHAR(255)	CHAR	255	0	False				4	4
+	PeakCount	INTEGER	INTEGER	0	0	False				5	5
+	MaxX	INTEGER	INTEGER	0	0	False				6	6
+	PeakData	CHAR	CHAR	0	0	False				7	7Filter表
+	CompoundID	INTEGER	INTEGER	0	0	False				0	0
+	X	INTEGER	INTEGER	0	0	False				1	1
+	Y	INTEGER	INTEGER	0	0	False				2	2
+	YrX	INTEGER	INTEGER	0	0	False				3	3
+	Rank	INTEGER	INTEGER	0	0	False				4	4*/

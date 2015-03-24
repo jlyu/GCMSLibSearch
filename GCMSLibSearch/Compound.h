@@ -5,11 +5,13 @@
 
 class Peak {
 public:
-	Peak(void):_peakCount(0), _peakData("") { }
+	Peak(void):_compoundID(0), _peakCount(0), _peakData(""), _matchDegree(-1) { }
 	virtual ~Peak(void) { }
 
+	int _compoundID;
 	int _peakCount;
 	std::string _peakData;
+	int _matchDegree; //∆•≈‰∂»
 };
 
 class PeakPoint {

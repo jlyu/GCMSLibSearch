@@ -81,51 +81,51 @@ bool SqliteController::checkConnectionError() {
 // - DLL
 void SqliteController::libSearch(Compound aCompound, std::vector<Compound> matchedCompounds) {
 
-	// 【match compound】
-	Compound testCompound = aCompound; 
-	const int matchPeakCount = testCompound._peakCount;
-	unsigned int* matchX = new unsigned int[matchPeakCount];
-	float* matchY = new float[matchPeakCount];
-	parseCompound(testCompound, matchX, matchY);
+	//// 【match compound】
+	//Compound testCompound = aCompound; 
+	//const int matchPeakCount = testCompound._peakCount;
+	//unsigned int* matchX = new unsigned int[matchPeakCount];
+	//float* matchY = new float[matchPeakCount];
+	//parseCompound(testCompound, matchX, matchY);
 
-	// 【filtered compounds】
-	int *compoundIDs = new int[MAX_COMPOUND_ID + 1](); // [0]存放个数
-	dq_filterCompounds(testCompound, compoundIDs);
-
-
-	// lib compound
-	const int maxPeakCount = 800; //pSqlController->maxPeakCount(); 
-	unsigned int* libX = new unsigned int[maxPeakCount];
-	float* libY = new float[maxPeakCount];
-
-	// Search
-	std::vector<Peak> peaks;
-	dq_getPeakDatas_v2(compoundIDs, peaks); 
-
-	////typedef std::vector<Peak>::iterator ITER;
-	////for(ITER it = peaks.begin(); it != peaks.end(); it++) {
-
-	const size_t peakSize = peaks.size();
-	for (size_t i = 0; i != peakSize; i++) {
-
-		// Parse String
-		parsePeakData(peaks[i]._peakData, peaks[i]._peakCount, libX, libY);
-		
-			
-		// Diff Algorithm
-		 DiffSpectrum(matchX, matchY, matchPeakCount, libX, libY, peaks[i]._peakCount);
-	}
+	//// 【filtered compounds】
+	//int *compoundIDs = new int[MAX_COMPOUND_ID + 1](); // [0]存放个数
+	//dq_filterCompounds(testCompound, compoundIDs);
 
 
-	peaks.clear(); //TODO:
+	//// lib compound
+	//const int maxPeakCount = 800; //pSqlController->maxPeakCount(); 
+	//unsigned int* libX = new unsigned int[maxPeakCount];
+	//float* libY = new float[maxPeakCount];
 
-	delete [] compoundIDs;
-	delete [] libY;
-	delete [] libX;
-	delete [] matchY;
-	delete [] matchX;
+	//// Search
+	//std::vector<Peak> peaks;
+	//dq_getPeakDatas_v2(compoundIDs, peaks); 
 
-	std::cout << "SqliteController::libSearch --> OK " << std::endl;
+	//////typedef std::vector<Peak>::iterator ITER;
+	//////for(ITER it = peaks.begin(); it != peaks.end(); it++) {
+
+	//const size_t peakSize = peaks.size();
+	//for (size_t i = 0; i != peakSize; i++) {
+
+	//	// Parse String
+	//	parsePeakData(peaks[i]._peakData, peaks[i]._peakCount, libX, libY);
+	//	
+	//		
+	//	// Diff Algorithm
+	//	DiffSpectrum(matchX, matchY, matchPeakCount, libX, libY, peaks[i]._peakCount);
+	//}
+
+
+	//peaks.clear(); //TODO:
+
+	//delete [] compoundIDs;
+	//delete [] libY;
+	//delete [] libX;
+	//delete [] matchY;
+	//delete [] matchX;
+
+	//std::cout << "SqliteController::libSearch --> OK " << std::endl;
 	
 }
 
@@ -272,7 +272,7 @@ void SqliteController::dq_getPeakDatas_v2(int* compoundIDs, std::vector<Peak>& p
 	
 	char c[32];
 	sqlite3_stmt *statement;
-	std::string query = "SELECT PeakCount, PeakData FROM Compound WHERE ";
+	std::string query = "SELECT CompoundID, PeakCount, PeakData FROM Compound WHERE ";
 
 	int index = 0;
 	for(int i = 1; i <= MAX_COMPOUND_ID; i++) {
@@ -290,7 +290,6 @@ void SqliteController::dq_getPeakDatas_v2(int* compoundIDs, std::vector<Peak>& p
 			if ((index != peakSize) && (index % slice != 0) || (index == 0))  { query += "OR "; }
 		}
 
-		
 
 		if ((index != 0 && index % slice == 0)||(i == MAX_COMPOUND_ID)||(index == peakSize)) {
 
@@ -299,21 +298,17 @@ void SqliteController::dq_getPeakDatas_v2(int* compoundIDs, std::vector<Peak>& p
 			
 			//std::cout << query.c_str() << std::endl;
 			while (sqlite3_step(statement) == SQLITE_ROW) {
-				
-				//static int n = 0;
-				//peaks[n]._peakCount = sqlite3_column_int(statement, 0);
-				//peaks[n]._peakData = (const char*)sqlite3_column_text(statement, 1);
-
+		
 				Peak aPeak;
-				aPeak._peakCount = sqlite3_column_int(statement, 0);
-				aPeak._peakData = (const char*)sqlite3_column_text(statement, 1);
+				aPeak._compoundID = sqlite3_column_int(statement, 0);
+				aPeak._peakCount = sqlite3_column_int(statement, 1);
+				aPeak._peakData = (const char*)sqlite3_column_text(statement, 2);
 				peaks.push_back(aPeak);
 
-				//n++;
 			}
 			sqlite3_exec(_ppDB, "COMMIT;", NULL, NULL, NULL);
 			sqlite3_reset(statement);
-			query = "SELECT PeakCount, PeakData FROM Compound WHERE ";
+			query = "SELECT CompoundID, PeakCount, PeakData FROM Compound WHERE ";
 		}
 		
 	}

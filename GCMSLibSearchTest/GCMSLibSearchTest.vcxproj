@@ -78,6 +78,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\GCMSLibSearch\Compound.cpp" />
+    <ClCompile Include="..\GCMSLibSearch\SqliteController.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
