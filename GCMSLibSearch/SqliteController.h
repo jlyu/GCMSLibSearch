@@ -33,8 +33,8 @@ public:
 	~SqliteController(void);
 
 
-//接口
-	void SqliteController::libSearch(Compound aCompound, std::vector<Compound> matchedCompounds);
+	//dll接口
+	void SqliteController::libSearch(Compound testCompound, std::vector<Compound> &libCompounds);
 
 
 	// 预
@@ -51,7 +51,6 @@ public:
 	void SqliteController::queryCompoundData(std::vector<Compound> &selectedCompounds);
 	void SqliteController::getPeakData(int compoundID, Peak &aPeak); //按ID获得对应化合物丰度数据
 	std::vector<Peak> getPeakDatas(int startCompoundID, int limit);
-	//void SqliteController::dq_getPeakDatas(std::set<int> &compoundIDsSet, std::vector<Peak>& peaks);
 	void SqliteController::dq_getPeakDatas_v2(int*, std::vector<Peak>& peaks);
 	void SqliteController::dq_getPeakDatas_v3(int*, std::vector<Peak>& peaks);
 	void SqliteController::getPeakPoints(int compoundID, unsigned int* x, float* y);
@@ -60,8 +59,6 @@ public:
 	// 增/改
 	void SqliteController::storeCompound(const Compound& aCompound); //插入或替代化合物
 	void SqliteController::storePeakData(const PeakPoint& aPoint);
-
-	// 删
 	
 	
 	//Dirty & Quick

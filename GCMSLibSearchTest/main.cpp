@@ -299,7 +299,7 @@ void test_diffSpectrum_v3(SqliteController *pSqlController, int compoundID) {
 
 	
 	// lib compound
-	const int maxPeakCount = 800; //pSqlController->maxPeakCount(); 
+	const int maxPeakCount = 800; 
 	unsigned int* libX = new unsigned int[maxPeakCount];
 	float* libY = new float[maxPeakCount];
 
@@ -425,9 +425,9 @@ void test_diffSpectrum_v4(SqliteController *pSqlController) {
 
 void test_dll_libSearch() {
 	SqliteController nistController("../nist.db");
-	Compound aCompound;
-	std::vector<Compound> compounds;
-	nistController.libSearch(aCompound, compounds);
+	Compound testCompound = nistController.getCompound(3);
+	std::vector<Compound> libCompounds;
+	nistController.libSearch(testCompound, libCompounds);
 }
 
 int main() {
@@ -435,27 +435,27 @@ int main() {
 	SqliteController nistController("../nist.db");
 	std::cout << "-" <<std::endl;
 
-	int maxIndex = 0;
-	double maxRunTime = 0.0f;
+	//int maxIndex = 0;
+	//double maxRunTime = 0.0f;
 
-	for (int i = 3; i < 10; i++) {
+	////for (int i = 3; i < 10; i++) {
 
-		double timeStart = (double)clock();
+	//	double timeStart = (double)clock();
 
-		test_diffSpectrum_v3(&nistController, i); 
+	//	test_diffSpectrum_v3(&nistController, 3); 
 
-		double timeFinish = (double)clock(); //结束时间
+	//	double timeFinish = (double)clock(); //结束时间
 
-		if (maxRunTime < (timeFinish - timeStart)) {
-			maxRunTime = (timeFinish - timeStart);
-			maxIndex = i;
-		}
-		std::cout << "CompoundID:\t" << i << "\t runtime: "<< (timeFinish - timeStart) << "\t max: "<< maxRunTime << "  id: "<< maxIndex << std::endl;
+	//	if (maxRunTime < (timeFinish - timeStart)) {
+	//		maxRunTime = (timeFinish - timeStart);
+	//		maxIndex = 3;
+	//	}
+	//	std::cout << "CompoundID:\t" << 3 << "\t runtime: "<< (timeFinish - timeStart) << "\t max: "<< maxRunTime << "  id: "<< maxIndex << std::endl;
 
-	}
+	////}
 
 
-	//test_dll_libSearch(); 
+	test_dll_libSearch(); 
 	system("PAUSE");
 	return 0;
 }

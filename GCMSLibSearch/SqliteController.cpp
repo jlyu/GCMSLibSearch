@@ -8,7 +8,8 @@
 //#define  LIBMANAGERAPI extern "C" __declspec(dllexport)
 #define  LIBMANAGERAPI __declspec(dllexport)
 
-#define MAX_MASS 1659
+#define MAX_PEAK_COUNT	800
+#define MAX_MASS		1659
 #define MAX_Y_TO_X_EQUAL  1
 #define SUB_Y_TO_X_EQUAL  2
 #define FILTER_LIMIT      3  //滤过后几重交集
@@ -79,55 +80,62 @@ bool SqliteController::checkConnectionError() {
 
 
 // - DLL
-void SqliteController::libSearch(Compound aCompound, std::vector<Compound> matchedCompounds) {
+void SqliteController::libSearch(Compound testCompound, std::vector<Compound> &libCompounds) {
 
-	//// 【match compound】
-	//Compound testCompound = aCompound; 
-	//const int matchPeakCount = testCompound._peakCount;
-	//unsigned int* matchX = new unsigned int[matchPeakCount];
-	//float* matchY = new float[matchPeakCount];
-	//parseCompound(testCompound, matchX, matchY);
+	if (!libCompounds.empty()) { libCompounds.clear(); }
 
-	//// 【filtered compounds】
-	//int *compoundIDs = new int[MAX_COMPOUND_ID + 1](); // [0]存放个数
-	//dq_filterCompounds(testCompound, compoundIDs);
+	// 【match compound】
+	const int matchPeakCount = testCompound._peakCount;
+	unsigned int* matchX = new unsigned int[matchPeakCount];
+	float* matchY = new float[matchPeakCount];
+	parseCompound(testCompound, matchX, matchY);
 
+	// 【filtered compounds】 这里有一套判断的逻辑，最终输出就是过滤后剩余的 compoundID 数组
+	int *compoundIDs = new int[MAX_COMPOUND_ID + 1](); // [0]存放个数
+	dq_filterCompounds(testCompound, compoundIDs);
 
-	//// lib compound
-	//const int maxPeakCount = 800; //pSqlController->maxPeakCount(); 
-	//unsigned int* libX = new unsigned int[maxPeakCount];
-	//float* libY = new float[maxPeakCount];
-
-	//// Search
-	//std::vector<Peak> peaks;
-	//dq_getPeakDatas_v2(compoundIDs, peaks); 
-
-	//////typedef std::vector<Peak>::iterator ITER;
-	//////for(ITER it = peaks.begin(); it != peaks.end(); it++) {
-
-	//const size_t peakSize = peaks.size();
-	//for (size_t i = 0; i != peakSize; i++) {
-
-	//	// Parse String
-	//	parsePeakData(peaks[i]._peakData, peaks[i]._peakCount, libX, libY);
-	//	
-	//		
-	//	// Diff Algorithm
-	//	DiffSpectrum(matchX, matchY, matchPeakCount, libX, libY, peaks[i]._peakCount);
-	//}
+	// 【SQLite Search】
+	std::vector<Peak> peaks;
+	dq_getPeakDatas_v2(compoundIDs, peaks); 
 
 
-	//peaks.clear(); //TODO:
+	// lib compound
+	unsigned int* libX = new unsigned int[MAX_PEAK_COUNT];
+	float* libY = new float[MAX_PEAK_COUNT];
 
-	//delete [] compoundIDs;
-	//delete [] libY;
-	//delete [] libX;
-	//delete [] matchY;
-	//delete [] matchX;
-
-	//std::cout << "SqliteController::libSearch --> OK " << std::endl;
 	
+	const size_t peakSize = peaks.size();
+	for (size_t i = 0; i != peakSize; i++) {
+
+		//Parse String
+		parsePeakData(peaks[i]._peakData, peaks[i]._peakCount, libX, libY);
+		
+			
+		// Diff Algorithm
+		peaks[i]._matchDegree = DiffSpectrum(matchX, matchY, matchPeakCount, libX, libY, peaks[i]._peakCount);
+	}
+
+	// 【Get result】
+	nth_element(peaks.begin(), peaks.begin() + peaks.size() - 1, peaks.end(), 
+		SqliteController::peakCompare_MatchDegree);
+
+	for (size_t j = 0; j < 20 && j != peaks.size(); j++) {
+		int compoundID = peaks[j]._compoundID;
+		Compound aCompound = getCompound(compoundID);
+		aCompound._matchDegree = peaks[j]._matchDegree;
+		libCompounds.push_back(aCompound);
+	}
+
+
+	peaks.clear(); 
+	delete [] compoundIDs;
+	delete [] libY;
+	delete [] libX;
+	delete [] matchY;
+	delete [] matchX;
 }
+
+
 
 
 
