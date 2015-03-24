@@ -44,6 +44,8 @@ public:
 	void SqliteController::createTable(const char* table, int indexNumber, ...); // 可带多个 index
 
 	// 查
+	void SqliteController::getPeaksByCompoundIDs(int*, std::vector<Peak>& peaks);
+
 	int SqliteController::totalCompoundCounts(); //化合物总数
 	int SqliteController::maxPeakCount(); //库内最大峰个数
 	Compound SqliteController::getCompound(int compoundID); //按ID获得对应化合物
@@ -51,10 +53,15 @@ public:
 	void SqliteController::queryCompoundData(std::vector<Compound> &selectedCompounds);
 	void SqliteController::getPeakData(int compoundID, Peak &aPeak); //按ID获得对应化合物丰度数据
 	std::vector<Peak> getPeakDatas(int startCompoundID, int limit);
-	void SqliteController::dq_getPeakDatas_v2(int*, std::vector<Peak>& peaks);
 	void SqliteController::dq_getPeakDatas_v3(int*, std::vector<Peak>& peaks);
 	void SqliteController::getPeakPoints(int compoundID, unsigned int* x, float* y);
 	void SqliteController::dq_getPeakPoints(std::vector<PeakPoint>& peakPoints);
+
+	// 滤
+	void SqliteController::filterCompounds(const Compound& testCompound, int *compoundIDs);
+
+
+
 
 	// 增/改
 	void SqliteController::storeCompound(const Compound& aCompound); //插入或替代化合物
@@ -64,17 +71,14 @@ public:
 	//Dirty & Quick
 	std::vector<int> SqliteController::dq_getAllPeakCounts();
 	void SqliteController::dq_pre_getCompounds(std::vector<Compound> &compounds);
-
 	void SqliteController::dq_filterPeakByTwoMass(const Compound &aCompound, int* compoundIDs);
 	void SqliteController::dq_filterPeakByMaxX(const int maxX, int* compoundIDs);
 	void SqliteController::dq_filterPeakBy14(const std::vector<FilterPoint> &filterPoints, int* compoundIDs);
 	void SqliteController::dq_filterPeakBy08(const std::vector<FilterPoint> &filterPoints, int* compoundIDs);
 	void SqliteController::dq_filterCompounds(const Compound& unknownCompound, int *compoundIDs);
-
 	void SqliteController::dq_pre_buildMassHash();
 	void SqliteController::dq_pre_buildCompound(std::vector<Compound> &compounds);
 	void SqliteController::dq_pre_buildFilter();
-
 	bool SqliteController::init_openSQLite(const std::string &file);
 	bool SqliteController::checkConnectionError();
 	int  SqliteController::query_aSingleCount(sqlite3_stmt* pStatement);
@@ -88,6 +92,7 @@ public:
 	void SqliteController::parseCompound(Compound& aCompound, unsigned int *x, float *y);
 	void SqliteController::parsePeakData(const std::string& strPeakData, int peakCount, unsigned int *x, float *y);
 	
+	// 
 	static bool peakCompare_MatchDegree(const Peak &p1, const Peak &p2) { return p1._matchDegree > p2._matchDegree; }
 	static bool peakPointCompare_Y(const PeakPoint &p1, const PeakPoint &p2) {  return p1._y > p2._y; }  
 	static bool filterPointCompare_X(const FilterPoint &p1, const FilterPoint &p2) {  return p1._peakPoint._x > p2._peakPoint._x; } 

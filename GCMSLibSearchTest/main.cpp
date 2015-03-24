@@ -95,134 +95,134 @@ template <class T> void clearObject(T* obj) {
 
 // Unit Test
 bool test_totalCompoundCounts(SqliteController *pSqlController) {
-	if (pSqlController) {
-		std::cout << pSqlController->totalCompoundCounts() << std::endl;
-		return true;
-	} 
+	//if (pSqlController) {
+	//	std::cout << pSqlController->totalCompoundCounts() << std::endl;
+	//	return true;
+	//} 
 	return false;
 }
 bool test_maxPeakCount(SqliteController *pSqlController) {
-	if (pSqlController) {
-		std::cout << pSqlController->maxPeakCount() << std::endl;
-		return true;
-	} 
+	//if (pSqlController) {
+	//	std::cout << pSqlController->maxPeakCount() << std::endl;
+	//	return true;
+	//} 
 	return false;
 }
 bool test_getCompounds(SqliteController *pSqlController) {
-	for (int page = 0; page < 300; page++) {
-		int limit = 5;
-		std::vector<Compound> compounds = pSqlController->getCompounds(123450 + page * limit, limit);
+	//for (int page = 0; page < 300; page++) {
+	//	int limit = 5;
+	//	std::vector<Compound> compounds = pSqlController->getCompounds(123450 + page * limit, limit);
 
-		for (size_t i = 0; i < compounds.size(); i++) {
-			compounds[i].printBrief();
-		}
-		std::cout << "--- P" << page << "----------------" << std::endl; 
-	}
+	//	for (size_t i = 0; i < compounds.size(); i++) {
+	//		compounds[i].printBrief();
+	//	}
+	//	std::cout << "--- P" << page << "----------------" << std::endl; 
+	//}
 	return true;
 }
 bool test_storeCompound(SqliteController *pSqlController) {
-	Compound aCompound = pSqlController->getCompound(2);
-	aCompound.print();
-	std::cout << "---------------------" << std::endl; 
-	aCompound._compoundID = 2;
-	aCompound._compoundName = "CHain";
-	aCompound._formula = "xxx";
-	aCompound._massWeight = 233;
-	aCompound._casNo = "7782-39-0";
-	aCompound._peakCount = 3;
-	aCompound._peakData = "2 55;4 222;5 111;";
+	//Compound aCompound = pSqlController->getCompound(2);
+	//aCompound.print();
+	//std::cout << "---------------------" << std::endl; 
+	//aCompound._compoundID = 2;
+	//aCompound._compoundName = "CHain";
+	//aCompound._formula = "xxx";
+	//aCompound._massWeight = 233;
+	//aCompound._casNo = "7782-39-0";
+	//aCompound._peakCount = 3;
+	//aCompound._peakData = "2 55;4 222;5 111;";
 
-	pSqlController->storeCompound(aCompound);
-	aCompound = pSqlController->getCompound(2);
-	aCompound.print();
+	//pSqlController->storeCompound(aCompound);
+	//aCompound = pSqlController->getCompound(2);
+	//aCompound.print();
 	return true;
 }
 bool test_getPeakPoints(SqliteController *pSqlController) {
 
-	double timeStart = (double)clock();
-	
-	std::vector<PeakPoint> peakPoints;
-	pSqlController->dq_getPeakPoints(peakPoints);
+	//double timeStart = (double)clock();
+	//
+	//std::vector<PeakPoint> peakPoints;
+	//pSqlController->dq_getPeakPoints(peakPoints);
 
-	double timeFinish = (double)clock();
-	std::cout << "1 times: dq_getPeakPoints() runtime: " << timeFinish - timeStart << " ms" << std::endl;
+	//double timeFinish = (double)clock();
+	//std::cout << "1 times: dq_getPeakPoints() runtime: " << timeFinish - timeStart << " ms" << std::endl;
 	return true;
 }
 
 void test_filterCompounds_v1(SqliteController *pSqlController, const Compound& testCompound, int *compoundIDs) {
-	// -1 按 最大和次最大 Y 对应 X相等
-	// -2 按 最大X相等
-	static double filterTime = 0.0f;
-	double timeStart = (double)clock();
-	double timeFinish = (double)clock();
+	//// -1 按 最大和次最大 Y 对应 X相等
+	//// -2 按 最大X相等
+	//static double filterTime = 0.0f;
+	//double timeStart = (double)clock();
+	//double timeFinish = (double)clock();
 
-	timeStart = (double)clock();
-	//int *compoundIDs = new int[COMPOUNDS_SIZES]();  // [0]存放个数
-	pSqlController->dq_filterPeakByTwoMass(testCompound, compoundIDs);
-	std::cout << "filterPeakByTwoMass:\t" << compoundIDs[0] << " to go" << std::endl;
+	//timeStart = (double)clock();
+	////int *compoundIDs = new int[COMPOUNDS_SIZES]();  // [0]存放个数
+	//pSqlController->dq_filterPeakByTwoMass(testCompound, compoundIDs);
+	//std::cout << "filterPeakByTwoMass:\t" << compoundIDs[0] << " to go" << std::endl;
 
-	pSqlController->dq_filterPeakByMaxX(testCompound._maxX, compoundIDs);
-	std::cout << "filterPeakByMaxX:\t" << compoundIDs[0] << " to go" << std::endl;
+	//pSqlController->dq_filterPeakByMaxX(testCompound._maxX, compoundIDs);
+	//std::cout << "filterPeakByMaxX:\t" << compoundIDs[0] << " to go" << std::endl;
 
-	timeFinish = (double)clock();
-	filterTime += timeFinish - timeStart;
-	std::cout << "FilterComps:\t"  << filterTime << std::endl;
+	//timeFinish = (double)clock();
+	//filterTime += timeFinish - timeStart;
+	//std::cout << "FilterComps:\t"  << filterTime << std::endl;
 }
 void test_filterCompounds_v2(SqliteController *pSqlController, const Compound& testCompound, int *compoundIDs) {
-	// 峰数 >=14 未知谱图中强度最大的14个峰（对应的X）要与谱库中谱图强度最大的14个峰（对应的X）相同
-	// 
+	//// 峰数 >=14 未知谱图中强度最大的14个峰（对应的X）要与谱库中谱图强度最大的14个峰（对应的X）相同
+	//// 
+	////
+	//static double filterTime = 0.0f;
+	//double timeStart = (double)clock();
+	//double timeFinish = (double)clock();
+
+	//std::vector<FilterPoint> filterPoints;
+	//std::string strPeakData = testCompound._peakData;
+	//const int peakCount = testCompound._peakCount;
+	//filterPoints.resize(peakCount);
+	//pSqlController->pre_parsePeakDataString(strPeakData, peakCount, filterPoints);
+	//nth_element(filterPoints.begin(), filterPoints.begin() + peakCount, filterPoints.end(), SqliteController::filterPointCompare_Y);
+	//std::vector<FilterPoint> nthPoints;
+	//nthPoints.insert(nthPoints.end(), filterPoints.begin(), filterPoints.begin() + 8);
 	//
-	static double filterTime = 0.0f;
-	double timeStart = (double)clock();
-	double timeFinish = (double)clock();
-
-	std::vector<FilterPoint> filterPoints;
-	std::string strPeakData = testCompound._peakData;
-	const int peakCount = testCompound._peakCount;
-	filterPoints.resize(peakCount);
-	pSqlController->pre_parsePeakDataString(strPeakData, peakCount, filterPoints);
-	nth_element(filterPoints.begin(), filterPoints.begin() + peakCount, filterPoints.end(), SqliteController::filterPointCompare_Y);
-	std::vector<FilterPoint> nthPoints;
-	nthPoints.insert(nthPoints.end(), filterPoints.begin(), filterPoints.begin() + 8);
-	
-	//
-	pSqlController->dq_filterPeakBy14(nthPoints, compoundIDs);
+	////
+	//pSqlController->dq_filterPeakBy14(nthPoints, compoundIDs);
 
 
-	timeFinish = (double)clock();
-	filterTime += timeFinish - timeStart;
-	std::cout << "FilterComps:\t"  << filterTime << std::endl;
+	//timeFinish = (double)clock();
+	//filterTime += timeFinish - timeStart;
+	//std::cout << "FilterComps:\t"  << filterTime << std::endl;
 }
 void test_filterCompounds_v3(SqliteController *pSqlController, const Compound& unknownCompound, int *compoundIDs) {
 
-	// 未知峰 >=8, 未知峰 1-8 的X 对应落在 YrX排序后 8~15 个谱库峰的 X 范围内，范围外则滤除
+	//// 未知峰 >=8, 未知峰 1-8 的X 对应落在 YrX排序后 8~15 个谱库峰的 X 范围内，范围外则滤除
 
-	std::string strPeakData = unknownCompound._peakData;
-	const int peakCount = unknownCompound._peakCount;
-	if (peakCount < 8) return;
-	
-	static double filterTime = 0.0f;
-	double timeStart = (double)clock();
-	double timeFinish = (double)clock();
-
-	// 从未知峰依次（1-8个峰）取上下限
-	const int filterPeakLimitNumbers = 8; //
-	std::vector<FilterPoint> unknownPeakPoints; 
-	unknownPeakPoints.resize(peakCount);
-	pSqlController->pre_parsePeakDataString(strPeakData, peakCount, unknownPeakPoints);
-	nth_element(unknownPeakPoints.begin(), 
-		unknownPeakPoints.begin() + filterPeakLimitNumbers, 
-		unknownPeakPoints.end(), 
-		SqliteController::filterPointCompare_YrX);
-
-	std::vector<FilterPoint> nthPoints;
-	nthPoints.insert(nthPoints.end(), unknownPeakPoints.begin(), unknownPeakPoints.begin() + filterPeakLimitNumbers);
+	//std::string strPeakData = unknownCompound._peakData;
+	//const int peakCount = unknownCompound._peakCount;
+	//if (peakCount < 8) return;
 	//
-	pSqlController->dq_filterPeakBy08(nthPoints, compoundIDs);
-	
-	timeFinish = (double)clock();
-	filterTime += timeFinish - timeStart;
-	//std::cout << "FilterComps:\t"  << filterTime << std::endl;
+	//static double filterTime = 0.0f;
+	//double timeStart = (double)clock();
+	//double timeFinish = (double)clock();
+
+	//// 从未知峰依次（1-8个峰）取上下限
+	//const int filterPeakLimitNumbers = 8; //
+	//std::vector<FilterPoint> unknownPeakPoints; 
+	//unknownPeakPoints.resize(peakCount);
+	//pSqlController->pre_parsePeakDataString(strPeakData, peakCount, unknownPeakPoints);
+	//nth_element(unknownPeakPoints.begin(), 
+	//	unknownPeakPoints.begin() + filterPeakLimitNumbers, 
+	//	unknownPeakPoints.end(), 
+	//	SqliteController::filterPointCompare_YrX);
+
+	//std::vector<FilterPoint> nthPoints;
+	//nthPoints.insert(nthPoints.end(), unknownPeakPoints.begin(), unknownPeakPoints.begin() + filterPeakLimitNumbers);
+	////
+	//pSqlController->dq_filterPeakBy08(nthPoints, compoundIDs);
+	//
+	//timeFinish = (double)clock();
+	//filterTime += timeFinish - timeStart;
+	////std::cout << "FilterComps:\t"  << filterTime << std::endl;
 }
 bool test_diffSpectrum_v1(SqliteController *pSqlController, int times) {
 	//批量从CompoundInfo表内读数据，解析字符串
@@ -306,7 +306,7 @@ void test_diffSpectrum_v3(SqliteController *pSqlController, int compoundID) {
 	// Search
 	timeStart = (double)clock();
 	std::vector<Peak> peaks;
-	pSqlController->dq_getPeakDatas_v2(compoundIDs, peaks); 
+	pSqlController->getPeaksByCompoundIDs(compoundIDs, peaks); 
 	timeFinish = (double)clock();
 	sqliteTime += timeFinish - timeStart;
 
