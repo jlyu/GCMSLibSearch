@@ -425,15 +425,18 @@ void test_diffSpectrum_v4(SqliteController *pSqlController) {
 
 void test_dll_libSearch() {
 	SqliteController nistController("../nist.db");
-	Compound testCompound = nistController.getCompound(3);
-	std::vector<Compound> libCompounds;
-	nistController.libSearch(testCompound, libCompounds);
+	for (int i = 1; i < 190000; i++) {
+		Compound testCompound = nistController.getCompound(i);
+		std::vector<Compound> libCompounds;
+		nistController.libSearch(testCompound, libCompounds);
+	}
+	
 }
 
 int main() {
 	 
-	SqliteController nistController("../nist.db");
-	std::cout << "-" <<std::endl;
+	//SqliteController nistController("../nist.db");
+	//std::cout << "-" <<std::endl;
 
 	//int maxIndex = 0;
 	//double maxRunTime = 0.0f;

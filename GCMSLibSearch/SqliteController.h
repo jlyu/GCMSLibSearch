@@ -59,8 +59,10 @@ public:
 
 	// 滤
 	void SqliteController::filterCompounds(const Compound& testCompound, int *compoundIDs);
+	void SqliteController::filterCompounds_C(const Compound& testCompound, int *compoundIDs);
+	void SqliteController::filterCompounds_D(const Compound& testCompound, int *compoundIDs);
 
-
+	void SqliteController::_filterPeakBy08(const std::vector<FilterPoint> &filterPoints, int* compoundIDs);
 
 
 	// 增/改
@@ -74,7 +76,7 @@ public:
 	void SqliteController::dq_filterPeakByTwoMass(const Compound &aCompound, int* compoundIDs);
 	void SqliteController::dq_filterPeakByMaxX(const int maxX, int* compoundIDs);
 	void SqliteController::dq_filterPeakBy14(const std::vector<FilterPoint> &filterPoints, int* compoundIDs);
-	void SqliteController::dq_filterPeakBy08(const std::vector<FilterPoint> &filterPoints, int* compoundIDs);
+	
 	void SqliteController::dq_filterCompounds(const Compound& unknownCompound, int *compoundIDs);
 	void SqliteController::dq_pre_buildMassHash();
 	void SqliteController::dq_pre_buildCompound(std::vector<Compound> &compounds);
@@ -106,17 +108,27 @@ public:
 
 /* 数据库结构
 
-Compound表：
+Compound 表 
+	CompoundID		INTEGER		INTEGER	0	0	False				0	0
+	CompoundName	CHAR		CHAR	0	0	False				1	1
+	Formula			CHAR(255)	CHAR	255	0	False				2	2
+	MassWeight		INTEGER		INTEGER	0	0	False				3	3
+	CasNo			CHAR(255)	CHAR	255	0	False				4	4
+	PeakCount		INTEGER		INTEGER	0	0	False				5	5
+	MaxX			INTEGER		INTEGER	0	0	False				6	6
+	PeakData		CHAR		CHAR	0	0	False				7	7
+
+Filter 表 (Rank 存 1-9 即可)
 	CompoundID	INTEGER	INTEGER	0	0	False				0	0
-	CompoundName	CHAR	CHAR	0	0	False				1	1
-	Formula	CHAR(255)	CHAR	255	0	False				2	2
-	MassWeight	INTEGER	INTEGER	0	0	False				3	3
-	CasNo	CHAR(255)	CHAR	255	0	False				4	4
-	PeakCount	INTEGER	INTEGER	0	0	False				5	5
-	MaxX	INTEGER	INTEGER	0	0	False				6	6
-	PeakData	CHAR	CHAR	0	0	False				7	7Filter表
+	X			INTEGER	INTEGER	0	0	False				1	1
+	Y			INTEGER	INTEGER	0	0	False				2	2
+	YrX			INTEGER	INTEGER	0	0	False				3	3
+	Rank		INTEGER	INTEGER	0	0	False				4	4
+
+FilterXY 表
 	CompoundID	INTEGER	INTEGER	0	0	False				0	0
-	X	INTEGER	INTEGER	0	0	False				1	1
-	Y	INTEGER	INTEGER	0	0	False				2	2
-	YrX	INTEGER	INTEGER	0	0	False				3	3
-	Rank	INTEGER	INTEGER	0	0	False				4	4*/
+	X			INTEGER	INTEGER	0	0	False				1	1
+	Y			INTEGER	INTEGER	0	0	False				2	2
+	Rank		INTEGER	INTEGER	0	0	False				3	3
+
+*/

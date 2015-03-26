@@ -47,4 +47,5 @@ public:
 	afx_msg void OnBnShowSearchResult();
 
 	void drawPeakCompare(const CString &strPeakData);
+	afx_msg void OnBnClickedCallDLL();
 };

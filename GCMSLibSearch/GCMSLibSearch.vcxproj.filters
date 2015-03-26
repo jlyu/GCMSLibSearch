@@ -22,6 +22,9 @@
     <Filter Include="源文件\Control">
       <UniqueIdentifier>{8aa3eee5-21ba-44a6-b94e-fbd6ad53bc0e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\DLL">
+      <UniqueIdentifier>{453fd576-f24e-4b2d-b209-b182833df77a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
@@ -54,17 +57,20 @@
     <ClInclude Include="SearchResultView.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="sqlite3.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="Compound.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="match.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="SqliteController.h">
       <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="match.h">
+      <Filter>头文件\DLL</Filter>
+    </ClInclude>
+    <ClInclude Include="sqlite3.h">
+      <Filter>头文件\DLL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GCMSLibManager\GCMSLibManager.h">
+      <Filter>头文件\DLL</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

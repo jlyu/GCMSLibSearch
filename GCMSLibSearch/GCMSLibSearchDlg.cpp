@@ -9,8 +9,8 @@
 
 
 #include "SqliteController.h"
-
-
+//DLL
+#include "..\GCMSLibManager\GCMSLibManager.h"
 
 #include <vector>
 
@@ -73,6 +73,7 @@ BEGIN_MESSAGE_MAP(CGCMSLibSearchDlg, CDialogEx)
 	ON_BN_CLICKED(IDOK, &CGCMSLibSearchDlg::OnBnLoadTestingPeakData)
 	//ON_BN_CLICKED(IDCANCEL, &CGCMSLibSearchDlg::OnOpenSearchResult)
 	ON_BN_CLICKED(IDC_BUTTON1, &CGCMSLibSearchDlg::OnBnShowSearchResult)
+	ON_BN_CLICKED(IDC_BUTTON2, &CGCMSLibSearchDlg::OnBnClickedCallDLL)
 END_MESSAGE_MAP()
 
 
@@ -201,11 +202,22 @@ void CGCMSLibSearchDlg::OnBnShowSearchResult()
 
 	////
 
-	//CSearchResultView *pSearchResultDlg = CSearchResultView::getInstance();
-	//pSearchResultDlg->fillCompoundList(compounds);
-	//pSearchResultDlg->setNofityObject(this);
-	//pSearchResultDlg->ShowWindow(SW_SHOW);
+	CSearchResultView *pSearchResultDlg = CSearchResultView::getInstance();
+	pSearchResultDlg->fillCompoundList(compounds);
+	pSearchResultDlg->setNofityObject(this);
+	pSearchResultDlg->ShowWindow(SW_SHOW);
+
+
+	
 
 }
 
 
+
+
+void CGCMSLibSearchDlg::OnBnClickedCallDLL() {
+
+	// 尝试在此调用 DLL 接口
+	GCMSLibSearchStrategy(this);
+
+}

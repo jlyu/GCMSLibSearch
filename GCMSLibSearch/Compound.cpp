@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "Compound.h"
 #include <string>
 

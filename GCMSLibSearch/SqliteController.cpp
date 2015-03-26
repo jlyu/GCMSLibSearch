@@ -1,9 +1,11 @@
+#include "stdafx.h"
 #include <iostream>
 #include <algorithm>
 #include <math.h>
 #include "time.h"
-#include "SqliteController.h"
 #include "match.h"
+#include "SqliteController.h"
+
 
 #define  LIBMANAGERAPI __declspec(dllexport)
 
@@ -12,13 +14,14 @@
 #define MAX_Y_TO_X_EQUAL  1
 #define SUB_Y_TO_X_EQUAL  2
 #define FILTER_LIMIT      3  //滤过后几重交集
-#define COMPOUND_FOUND    2
+#define COMPOUND_FOUND	1024
 
 // -Table
 #define CREATE_TABLE_PEAKDATA "CREATE TABLE IF NOT EXISTS [PeakData] ([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [CompoundID] INTEGER, [x] INTEGER, [y] INTEGER);"
 #define CREATE_TABLE_MASSHASH "CREATE TABLE IF NOT EXISTS [MassHash] ([Mass] INTEGER PRIMARY KEY, [IDs] CHAR);"
 #define CREATE_TABLE_COMPOUND "CREATE TABLE IF NOT EXISTS [Compound] ([CompoundID] INTEGER PRIMARY KEY, [CompoundName] CHAR, [Formula] CHAR(255), [MassWeight] INTEGER, [CasNo] CHAR(255), [PeakCount] INTEGER, [MaxX] INTEGER, [PeakData] CHAR);"
 #define CREATE_TABLE_FILTER	  "CREATE TABLE IF NOT EXISTS [Filter] ([CompoundID] INTEGER, [X] INTEGER, [Y] INTEGER, [YrX] INTEGER, [Rank] INTEGER);"
+
 // -Index
 #define CREATE_INDEX_X_ON_PEAKDATA "CREATE INDEX IF NOT EXISTS idx_x ON [PeakData] (x);"
 //#define CREATE_INDEX_ID_ON_PEAKDATA "CREATE INDEX IF NOT EXISTS idx_id ON [PeakData] (CompoundID);"
@@ -91,7 +94,11 @@ void SqliteController::libSearch(Compound testCompound, std::vector<Compound> &l
 
 	// 【filtered compounds】 这里有一套判断的逻辑，最终输出就是过滤后剩余的 compoundID 数组
 	int *compoundIDs = new int[MAX_COMPOUND_ID + 1](); // [0]存放个数
-	dq_filterCompounds(testCompound, compoundIDs);
+	//dq_filterCompounds(testCompound, compoundIDs);
+	filterCompounds(testCompound, compoundIDs);
+
+
+
 
 	// 【SQLite Search】
 	std::vector<Peak> peaks;
@@ -114,8 +121,11 @@ void SqliteController::libSearch(Compound testCompound, std::vector<Compound> &l
 
 
 	// 【Get result】
-	nth_element(peaks.begin(), peaks.begin() + peaks.size() - 1, peaks.end(), 
-		SqliteController::peakCompare_MatchDegree);
+	if (peakSize > 0) {
+		nth_element(peaks.begin(), peaks.begin() + peaks.size() - 1, peaks.end(), 
+			SqliteController::peakCompare_MatchDegree);
+	}
+	
 
 	for (size_t j = 0; j < 20 && j != peaks.size(); j++) {
 		int compoundID = peaks[j]._compoundID;
@@ -141,11 +151,10 @@ void SqliteController::libSearch(Compound testCompound, std::vector<Compound> &l
 
 // - 外部接口提供
 void SqliteController::pre_proccess() {
-	// -Create TABLE [PeakData] [MassHash] [Compound]* [Filter]*
-	//createTable(CREATE_TABLE_PEAKDATA, 1, CREATE_INDEX_X_ON_PEAKDATA);
-	//createTable(CREATE_TABLE_MASSHASH, 1, CREATE_INDEX_MASSHASH);
+	// -Create TABLE 
 	//createTable(CREATE_TABLE_COMPOUND, 1, CREATE_INDEX_MAXX_ON_COMPOUND);
 	//createTable(CREATE_TABLE_FILTER, 2, CREATE_INDEX_X_ON_FILTER, CREATE_INDEX_RANK_ON_FILTER);
+
 
 	// -Fill in dates
 	//pre_parsePeakDate();
@@ -987,18 +996,20 @@ void SqliteController::dq_filterPeakBy14(const std::vector<FilterPoint> &filterP
 	sqlite3_finalize(statement);
 
 	for (int i = 1; i != COUNT_COMPOUNDS; i++) {
-		if (compoundIDs[i] == 14) {
+		if (compoundIDs[i] == 14) { 
+			compoundIDs[i] = COMPOUND_FOUND;
 			compoundIDs[0]++;
-			std::cout << i << " Found" << std::endl;
+			//std::cout << i << " Found" << std::endl;
 		}
 	}
-	std::cout << compoundIDs[0] << " TOGO" << std::endl;
+	//std::cout << compoundIDs[0] << " TOGO" << std::endl;
 }
-void SqliteController::dq_filterPeakBy08(const std::vector<FilterPoint> &filterPoints, int* compoundIDs) {
+
+void SqliteController::_filterPeakBy08(const std::vector<FilterPoint> &filterPoints, int* compoundIDs) {
 	// 按未知物质 1-8 个最高Y对应 X 在 是否处于 Filter 取对应存在 8-16 个YrX最大对应的 X 的范围内
 	 
 	sqlite3_stmt* statement;
-	const std::string query = "SELECT CompoundID, X, Rank FROM Filter WHERE  (X = ?) AND (Rank >= ? AND Rank <= ?);"; 
+	const std::string query = "SELECT CompoundID FROM Filter WHERE  (X = ?) AND (Rank >= ? AND Rank <= ?);"; 
 	sqlite3_prepare_v2(_ppDB, query.c_str(), query.size(), &statement, NULL);
 
 	const int filterPeakLimitNumbers = 2; // 过滤轮数
@@ -1046,59 +1057,131 @@ void SqliteController::dq_filterPeakBy08(const std::vector<FilterPoint> &filterP
 }
 
 
-void SqliteController::dq_filterCompounds(const Compound& unknownCompound, int *compoundIDs) {
+//void SqliteController::dq_filterCompounds(const Compound& unknownCompound, int *compoundIDs) {
+//
+//	// 未知峰 >=8, 未知峰 1-8 的X 对应落在 YrX排序后 8~15 个谱库峰的 X 范围内，范围外则滤除
+//
+//	std::string strPeakData = unknownCompound._peakData;
+//	const int peakCount = unknownCompound._peakCount;
+//	if (peakCount < 8) return;
+//
+//	//static double filterTime = 0.0f;
+//	//double timeStart = (double)clock();
+//	//double timeFinish = (double)clock();
+//
+//	// 从未知峰依次（1-8个峰）取上下限
+//	const int filterPeakLimitNumbers = 8; //
+//	std::vector<FilterPoint> unknownPeakPoints; 
+//	unknownPeakPoints.resize(peakCount);
+//	pre_parsePeakDataString(strPeakData, peakCount, unknownPeakPoints);
+//	nth_element(unknownPeakPoints.begin(), 
+//		unknownPeakPoints.begin() + filterPeakLimitNumbers, 
+//		unknownPeakPoints.end(), 
+//		SqliteController::filterPointCompare_YrX);
+//
+//	std::vector<FilterPoint> nthPoints;
+//	nthPoints.insert(nthPoints.end(), unknownPeakPoints.begin(), unknownPeakPoints.begin() + filterPeakLimitNumbers);
+//	//
+//	
+//	//dq_filterPeakBy08(nthPoints, compoundIDs);
+//	dq_filterPeakBy14(nthPoints, compoundIDs);
+//
+//
+//	//timeFinish = (double)clock();
+//	//filterTime += timeFinish - timeStart;
+//	//std::cout << "FilterComps:\t"  << filterTime << std::endl;
+//}
 
-	// 未知峰 >=8, 未知峰 1-8 的X 对应落在 YrX排序后 8~15 个谱库峰的 X 范围内，范围外则滤除
+void SqliteController::filterCompounds_C(const Compound& testCompound, int *compoundIDs) {
 
-	std::string strPeakData = unknownCompound._peakData;
-	const int peakCount = unknownCompound._peakCount;
-	if (peakCount < 8) return;
-
-	//static double filterTime = 0.0f;
-	//double timeStart = (double)clock();
-	//double timeFinish = (double)clock();
-
-	// 从未知峰依次（1-8个峰）取上下限
-	const int filterPeakLimitNumbers = 8; //
+	const int peakCount = testCompound._peakCount;
+	const int filterPeakLimitNumbers = 8; 
+	std::string strPeakData = testCompound._peakData;
 	std::vector<FilterPoint> unknownPeakPoints; 
 	unknownPeakPoints.resize(peakCount);
+
 	pre_parsePeakDataString(strPeakData, peakCount, unknownPeakPoints);
 	nth_element(unknownPeakPoints.begin(), 
-		unknownPeakPoints.begin() + filterPeakLimitNumbers, 
-		unknownPeakPoints.end(), 
+		unknownPeakPoints.begin() + filterPeakLimitNumbers, unknownPeakPoints.end(), 
 		SqliteController::filterPointCompare_YrX);
 
 	std::vector<FilterPoint> nthPoints;
 	nthPoints.insert(nthPoints.end(), unknownPeakPoints.begin(), unknownPeakPoints.begin() + filterPeakLimitNumbers);
-	//
-	dq_filterPeakBy08(nthPoints, compoundIDs);
+	
+	_filterPeakBy08(nthPoints, compoundIDs);
 
-	//timeFinish = (double)clock();
-	//filterTime += timeFinish - timeStart;
-	//std::cout << "FilterComps:\t"  << filterTime << std::endl;
+	//dq_filterPeakBy14(nthPoints, compoundIDs);
 }
+
+void SqliteController::filterCompounds_D(const Compound& testCompound, int *compoundIDs) {
+
+	const int peakCount = testCompound._peakCount;
+	const int filterPeakLimitNumbers = 14; 
+	std::string strPeakData = testCompound._peakData;
+	std::vector<FilterPoint> unknownPeakPoints; 
+	unknownPeakPoints.resize(peakCount);
+
+	pre_parsePeakDataString(strPeakData, peakCount, unknownPeakPoints);
+	nth_element(unknownPeakPoints.begin(), 
+		unknownPeakPoints.begin() + filterPeakLimitNumbers, unknownPeakPoints.end(), 
+		SqliteController::filterPointCompare_YrX);
+
+	std::vector<FilterPoint> nthPoints;
+	nthPoints.insert(nthPoints.end(), unknownPeakPoints.begin(), unknownPeakPoints.begin() + filterPeakLimitNumbers);
+
+	//_filterPeakBy08(nthPoints, compoundIDs);
+
+	dq_filterPeakBy14(nthPoints, compoundIDs);
+}
+
 
 void SqliteController::filterCompounds(const Compound& testCompound, int *compoundIDs) {
 /*
-	【 】筛选方式 TypeA（testCompound峰数目≤5，原始数据 X，Y）
+	【X】筛选方式 TypeA（testCompound峰数目≤5，原始数据 X，Y）
 	1未知谱图中强度最大的5个峰（对应的X）要与谱库中谱图强度最大的5个峰（对应的X）相同
 	2未知谱图中X的最大值要与谱库中谱图X的最大值相同
+	--SELECT * FROM FilterXY WHERE Y=? OR Y=? OR Y=? OR Y=? OR Y=? ;
 
-	【 】筛选方式 TypeB（testCompound峰数目≥6，原始数据 X，Y）
+	【X】筛选方式 TypeB（testCompound峰数目≥6，原始数据 X，Y）
 	未知谱图中强度最大的6个峰（对应的X）要与谱库中谱图强度最大的6个峰（对应的X）相同
+	--SELECT * FROM FilterXY WHERE Y=? OR Y=? OR Y=? OR Y=? OR Y=? OR Y=? ;
 
 	【√】筛选方式 TypeC（testCompound峰数目≥8，处理后的数据 X，Y×√X）
 	未知谱图中Y√X强度第1的峰（对应的X）要出现在谱库中谱图强度最大的8个峰（对应的X）范围内包含相等，进行2轮
+	--SELECT CompoundID, X, Rank FROM Filter WHERE  (X = ?) AND (Rank >= ? AND Rank <= ?) ;
 
-	【√】筛选方式 TypeD（testCompound峰数目≥14，处理后的数据集合 X，Y×√X）
+	【X】筛选方式 TypeD（testCompound峰数目≥14，处理后的数据集合 X，Y×√X）
 	未知谱图中强度最大的14个峰（对应的X）要与谱库中谱图强度最大的14个峰（对应的X）相同
+	--SELECT [CompoundID] FROM Filter WHERE X=%d OR … X=%d
 */
-	const int peakCount = testCompound._peakCount;
 
-	if (peakCount <= 5) { }
-	if (peakCount >= 6) { }
-	if (peakCount >= 8) { }
-	if (peakCount >= 14) {}
+	filterCompounds_C(testCompound, compoundIDs);
 
+	//const int peakCount = testCompound._peakCount;
+	//int *B_IDs = new int[MAX_COMPOUND_ID + 1](); 
+	//int *C_IDs = new int[MAX_COMPOUND_ID + 1](); 
+	//int *D_IDs = new int[MAX_COMPOUND_ID + 1](); 
 
+	//double timeStart = (double)clock();
+	//if (peakCount <= 5) { }
+	//if (peakCount >= 6) { }
+	//if (peakCount >= 8) { filterCompounds_C(testCompound, C_IDs); }
+	//if (peakCount >= 14) { filterCompounds_D(testCompound, D_IDs); }
+
+	//for (int i = 1; i <= MAX_COMPOUND_ID; i++) {
+	//	if (C_IDs[i] == COMPOUND_FOUND || D_IDs[i] == COMPOUND_FOUND) {
+	//		compoundIDs[i] = COMPOUND_FOUND;
+	//		compoundIDs[0]++;
+	//	}
+	//}
+
+	//double timeFinish = (double)clock();
+	//std::cout << "FilterCompouns:\t" << timeFinish - timeStart << std::endl;
+	//std::cout << testCompound._compoundID;
+	//std::cout << "\tC-" << C_IDs[0] << "\tD-" << D_IDs[0];
+	//std::cout << "\tALL--" << compoundIDs[0] << std::endl;
+
+	//delete [] D_IDs;
+	//delete [] C_IDs;
+	//delete [] B_IDs;
 }
