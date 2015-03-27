@@ -23,7 +23,12 @@
 #endif
 
 // 导出 DLL
-LIBMANAGERDLL_API BOOL GCMSLibSearchStrategy(CWnd* pParent = NULL);
+
+// 【谱库检索策略 对话框界面】
+// 输入：配置参数
+// 输出：修改后的配置参数
+LIBMANAGERDLL_API BOOL GCMSLibSearchStrategy(CWnd* pParent, LibConfig& libConfig);
+
 
 
 

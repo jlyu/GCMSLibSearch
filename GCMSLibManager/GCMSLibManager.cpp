@@ -11,12 +11,14 @@
 
 //#define  LIBMANAGERDLL_API extern "C" __declspec(dllexport)
 
-BOOL GCMSLibSearchStrategy(CWnd* pParent) {
+BOOL GCMSLibSearchStrategy(CWnd* pParent, LibConfig& libConfig) {
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());
 
-	LibConfig libConfig;
 	LibSearchStrategyView libManagerView(pParent, libConfig);
-	libManagerView.DoModal();
+	if (libManagerView.DoModal()) {
+		libConfig = libManagerView._libConfig;
+	}
+	
 	return TRUE;
 }
 

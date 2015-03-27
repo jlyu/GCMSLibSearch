@@ -32,6 +32,9 @@
     <ClCompile Include="LibSearchStrategyView.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="LibSettingView.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GCMSLibManager.h">
@@ -47,6 +50,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="LibSearchStrategyView.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSettingView.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

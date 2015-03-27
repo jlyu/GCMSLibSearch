@@ -218,6 +218,21 @@ void CGCMSLibSearchDlg::OnBnShowSearchResult()
 void CGCMSLibSearchDlg::OnBnClickedCallDLL() {
 
 	// 尝试在此调用 DLL 接口
-	GCMSLibSearchStrategy(this);
+	LibConfig libConfig;
+	libConfig._dbPath1st = "wkdjfklajsdlfka";
+	libConfig._dbPath2nd = "fakfklajsfklaj";
+	libConfig._dbPath3rd = "dfa3";
+	libConfig._minMass1st = 10;
+	libConfig._minMass2nd = 20;
+	libConfig._minMass3rd = 30;
+	libConfig._lowerMass = 1;
+	libConfig._upperMass = 999;
+	libConfig._matchLimitNumber = 20;
+	libConfig._isUnique = true;
+
+
+	CString str(libConfig._dbPath1st.c_str());
+
+	GCMSLibSearchStrategy(this, libConfig);
 
 }
