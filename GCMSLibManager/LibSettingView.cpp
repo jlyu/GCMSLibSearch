@@ -14,11 +14,18 @@ IMPLEMENT_DYNAMIC(LibSettingView, CDialogEx)
 LibSettingView::LibSettingView(CWnd* pParent /*=NULL*/)
 	: CDialogEx(LibSettingView::IDD, pParent)
 {
-
+	_defaultDBPath = CString(_T("E:\\GCMSLibSearch\\GCMSLibSearch\\nist.db"));
 }
 
 LibSettingView::~LibSettingView()
 {
+}
+
+BOOL LibSettingView::OnInitDialog() {
+	CDialogEx::OnInitDialog();
+
+	GetDlgItem(IDC_EDIT_DB_PATH)->SetWindowText(_defaultDBPath);
+	return TRUE;
 }
 
 void LibSettingView::DoDataExchange(CDataExchange* pDX)
@@ -56,6 +63,7 @@ void LibSettingView::getCompoundsOnEditCtrls(Compound &aCompound) {
 BEGIN_MESSAGE_MAP(LibSettingView, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_CHOOSE_DB, &LibSettingView::OnBnClickedChooseDB)
 	ON_BN_CLICKED(IDC_BUTTON_QUERY_COMPOUND, &LibSettingView::OnBnClickedQueryCompound)
+	ON_BN_CLICKED(IDC_BUTTON_CREATE_DB, &LibSettingView::OnBnClickedCreateDB)
 END_MESSAGE_MAP()
 
 
@@ -68,7 +76,7 @@ void LibSettingView::OnBnClickedChooseDB() {
 
 	if (fileDlg.DoModal()) {
 		strPath = fileDlg.GetPathName();
-	}
+	} else { return; }
 	
 	GetDlgItem(IDC_EDIT_DB_PATH)->SetWindowText(strPath);
 	_cstrDBPath = strPath;
@@ -90,5 +98,20 @@ void LibSettingView::OnBnClickedQueryCompound() {
 
 	// 显示结果
 	setCompoundsOnEditCtrls(compound);
+}
 
+
+void LibSettingView::OnBnClickedCreateDB() {
+	CString cstrPath = _T("");
+	CFileDialog fileDlg(FALSE, _T("db"), NULL, OFN_HIDEREADONLY, _T("谱库数据库 (*.db)|*.db||"), NULL);
+
+	if (fileDlg.DoModal()) {
+		cstrPath = fileDlg.GetPathName();
+	} else { return; }
+
+	// TODO: 检测是否命名冲突
+	const std::string strPath = CT2A(cstrPath);
+	SqliteController sqliteController(strPath);
+	GetDlgItem(IDC_EDIT_DB_PATH)->SetWindowText(cstrPath);
+	_cstrDBPath = cstrPath;
 }

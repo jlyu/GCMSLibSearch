@@ -49,4 +49,5 @@ public:
 	void drawPeakCompare(const CString &strPeakData);
 	afx_msg void OnBnClickedCallDLL();
 	afx_msg void OnBnClickedLibSetting();
+	afx_msg void OnBnClickedParaSearch();
 };

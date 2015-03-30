@@ -74,6 +74,7 @@ BEGIN_MESSAGE_MAP(CGCMSLibSearchDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON1, &CGCMSLibSearchDlg::OnBnShowSearchResult)
 	ON_BN_CLICKED(IDC_BUTTON2, &CGCMSLibSearchDlg::OnBnClickedCallDLL)
 	ON_BN_CLICKED(IDC_BUTTON_EDIT_DB, &CGCMSLibSearchDlg::OnBnClickedLibSetting)
+	ON_BN_CLICKED(IDC_BUTTON_PARA_SEARCH, &CGCMSLibSearchDlg::OnBnClickedParaSearch)
 END_MESSAGE_MAP()
 
 
@@ -237,4 +238,36 @@ void CGCMSLibSearchDlg::OnBnClickedCallDLL() {
 void CGCMSLibSearchDlg::OnBnClickedLibSetting() {
 	
 	GCMSLibSetting(this);
+}
+
+
+void CGCMSLibSearchDlg::OnBnClickedParaSearch() {
+	
+	CString strPath = _T("");
+	CFileDialog fileDlg(FALSE, _T("db"), NULL, OFN_HIDEREADONLY, _T("Æ×¿âÊý¾Ý¿â (*.db)|*.db||"), NULL);
+
+	if (fileDlg.DoModal()) {
+		strPath = fileDlg.GetPathName();
+
+	} else { return; }
+
+	//std::string dBPath = CT2A(strPath);
+	//std::string::size_type pos = dBPath.rfind('.', dBPath.length());
+	//if (pos != std::string::npos) {
+	//	std::string dBSuffix = dBPath.substr(pos + 1, dBPath.length() - pos);
+	//	if (dBSuffix != "db") {
+	//		dBPath += ".db";
+	//	}
+	//} else {
+	//	dBPath += ".db";
+	//}
+	
+
+	// TODO: ¼ì²âÊÇ·ñÃüÃû³åÍ»
+
+
+
+	//SqliteController sqliteController(dBPath);
+	
+	
 }

@@ -20,6 +20,7 @@ public:
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV Ö§³Ö
+	virtual BOOL OnInitDialog();
 
 	DECLARE_MESSAGE_MAP()
 
@@ -27,8 +28,10 @@ protected:
 	void getCompoundsOnEditCtrls(Compound &aCompound);
 
 public:
+	CString _defaultDBPath;
 	CString _cstrDBPath;
 
 
 	
+	afx_msg void OnBnClickedCreateDB();
 };
