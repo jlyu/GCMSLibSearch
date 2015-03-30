@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "GCMSLibManager.h"
 #include "LibSearchStrategyView.h"
+#include "LibSettingView.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -11,17 +12,21 @@
 
 //#define  LIBMANAGERDLL_API extern "C" __declspec(dllexport)
 
-BOOL GCMSLibSearchStrategy(CWnd* pParent, LibConfig& libConfig) {
+VOID GCMSLibSearchStrategy(CWnd* pParent, LibConfig& libConfig) {
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());
 
 	LibSearchStrategyView libManagerView(pParent, libConfig);
 	if (libManagerView.DoModal()) {
 		libConfig = libManagerView._libConfig;
 	}
-	
-	return TRUE;
 }
 
+VOID GCMSLibSetting(CWnd* pParent) {
+	AFX_MANAGE_STATE(AfxGetStaticModuleState());
+
+	LibSettingView libSettingView(pParent);
+	libSettingView.DoModal();
+}
 
 //
 //TODO: 如果此 DLL 相对于 MFC DLL 是动态链接的，

@@ -7,7 +7,7 @@
 #include "SqliteController.h"
 
 
-#define  LIBMANAGERAPI __declspec(dllexport)
+//#define  LIBMANAGERAPI __declspec(dllexport)
 
 #define MAX_PEAK_COUNT	800
 #define MAX_MASS		1659
@@ -545,7 +545,7 @@ void SqliteController::pre_parsePeakDataString(const std::string& strPeakData, i
 		std::string strY = strXY.substr(w+1, strXY.length());
 
 		x[index] = atoi(strX.c_str());
-		y[index] = (float)atoi(strY.c_str());
+		y[index] = atoi(strY.c_str());
 
 		i = ++j;
 		j = strPeakData.find(';', j);

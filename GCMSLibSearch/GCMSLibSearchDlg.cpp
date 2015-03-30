@@ -7,9 +7,8 @@
 #include "GCMSLibSearch.h"
 #include "GCMSLibSearchDlg.h"
 
-
-#include "SqliteController.h"
 //DLL
+#include "..\GCMSLibManager\SqliteController.h"
 #include "..\GCMSLibManager\GCMSLibManager.h"
 
 #include <vector>
@@ -74,6 +73,7 @@ BEGIN_MESSAGE_MAP(CGCMSLibSearchDlg, CDialogEx)
 	//ON_BN_CLICKED(IDCANCEL, &CGCMSLibSearchDlg::OnOpenSearchResult)
 	ON_BN_CLICKED(IDC_BUTTON1, &CGCMSLibSearchDlg::OnBnShowSearchResult)
 	ON_BN_CLICKED(IDC_BUTTON2, &CGCMSLibSearchDlg::OnBnClickedCallDLL)
+	ON_BN_CLICKED(IDC_BUTTON_EDIT_DB, &CGCMSLibSearchDlg::OnBnClickedLibSetting)
 END_MESSAGE_MAP()
 
 
@@ -207,9 +207,6 @@ void CGCMSLibSearchDlg::OnBnShowSearchResult()
 	pSearchResultDlg->setNofityObject(this);
 	pSearchResultDlg->ShowWindow(SW_SHOW);
 
-
-	
-
 }
 
 
@@ -234,5 +231,10 @@ void CGCMSLibSearchDlg::OnBnClickedCallDLL() {
 	CString str(libConfig._dbPath1st.c_str());
 
 	GCMSLibSearchStrategy(this, libConfig);
+}
 
+
+void CGCMSLibSearchDlg::OnBnClickedLibSetting() {
+	
+	GCMSLibSetting(this);
 }

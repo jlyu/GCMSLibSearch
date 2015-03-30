@@ -1,8 +1,4 @@
 #pragma once
-//#include "stdafx.h"
-//#include "afxdialogex.h"
-//#include "afxcmn.h"
-//#include "Resource.h"
 
 #include "GCMSLibManager.h"
 

@@ -2,7 +2,7 @@
 #pragma once
 
 #include "PeakDrawView.h"
-#include "Compound.h"
+#include "..\GCMSLibManager\Compound.h"
 #include "SearchResultView.h"
 
 
@@ -48,4 +48,5 @@ public:
 
 	void drawPeakCompare(const CString &strPeakData);
 	afx_msg void OnBnClickedCallDLL();
+	afx_msg void OnBnClickedLibSetting();
 };

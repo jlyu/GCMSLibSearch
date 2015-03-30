@@ -1,6 +1,6 @@
 #pragma once
 #include "afxcmn.h"
-#include "Compound.h"
+#include "..\GCMSLibManager\Compound.h"
 #include "GCMSLibSearchDlg.h"
 
 #include <vector>

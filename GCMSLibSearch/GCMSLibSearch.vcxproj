@@ -58,7 +58,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>matchdll.lib;GCMSLibManagerDLL.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>GCMSLibManagerDLL.lib;sqlite3_D.lib;matchdll.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -103,8 +103,9 @@
     <None Include="res\GCMSLibSearch.rc2" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\GCMSLibManager\Compound.h" />
     <ClInclude Include="..\GCMSLibManager\GCMSLibManager.h" />
-    <ClInclude Include="Compound.h" />
+    <ClInclude Include="..\GCMSLibManager\SqliteController.h" />
     <ClInclude Include="GCMSLibSearch.h" />
     <ClInclude Include="GCMSLibSearchDlg.h" />
     <ClInclude Include="match.h" />
@@ -112,17 +113,15 @@
     <ClInclude Include="Resource.h" />
     <ClInclude Include="SearchResultView.h" />
     <ClInclude Include="sqlite3.h" />
-    <ClInclude Include="SqliteController.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Compound.cpp" />
+    <ClCompile Include="..\GCMSLibManager\SqliteController.cpp" />
     <ClCompile Include="GCMSLibSearch.cpp" />
     <ClCompile Include="GCMSLibSearchDlg.cpp" />
     <ClCompile Include="PeakDrawView.cpp" />
     <ClCompile Include="SearchResultView.cpp" />
-    <ClCompile Include="SqliteController.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
