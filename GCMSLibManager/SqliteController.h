@@ -39,7 +39,9 @@ public:
 
 
 	// 预
+	bool SqliteController::checkConnectionError();
 	void SqliteController::pre_proccess();
+	bool SqliteController::initTables();
 
 	// 建
 	void SqliteController::createTable(const char* table, int indexNumber, ...); // 可带多个 index
@@ -83,7 +85,6 @@ public:
 	void SqliteController::dq_pre_buildCompound(std::vector<Compound> &compounds);
 	void SqliteController::dq_pre_buildFilter();
 	bool SqliteController::init_openSQLite(const std::string &file);
-	bool SqliteController::checkConnectionError();
 	int  SqliteController::query_aSingleCount(sqlite3_stmt* pStatement);
 	// Parse TODO： 合成一个函数
 	void SqliteController::pre_parsePeakDate(); //把CompoundInfo表的PeakData字段数据解析存入PeakData表内
@@ -104,6 +105,12 @@ public:
 	 
 
 	sqlite3* _ppDB;
+
+private:
+	std::wstring SqliteController::acsii2wideByte(std::string& strascii);
+	std::string SqliteController::unicode2utf8(const std::wstring& wString);
+	std::string SqliteController::ascii2utf8(std::string& strAsciiCode);
+	
 };
 
 

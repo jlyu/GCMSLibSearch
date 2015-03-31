@@ -15,6 +15,7 @@ LibSettingView::LibSettingView(CWnd* pParent /*=NULL*/)
 	: CDialogEx(LibSettingView::IDD, pParent)
 {
 	_defaultDBPath = CString(_T("E:\\GCMSLibSearch\\GCMSLibSearch\\nist.db"));
+	_cstrDBPath = _defaultDBPath;
 }
 
 LibSettingView::~LibSettingView()
@@ -74,12 +75,16 @@ void LibSettingView::OnBnClickedChooseDB() {
 	CString strPath = _T("");
 	CFileDialog fileDlg(TRUE, NULL, NULL, OFN_HIDEREADONLY, _T("谱库数据库 (*.db)|*.db|All Files (*.*)|*.*||"), NULL);
 
-	if (fileDlg.DoModal()) {
+	if (fileDlg.DoModal() == IDOK) {
+
 		strPath = fileDlg.GetPathName();
-	} else { return; }
-	
-	GetDlgItem(IDC_EDIT_DB_PATH)->SetWindowText(strPath);
-	_cstrDBPath = strPath;
+		GetDlgItem(IDC_EDIT_DB_PATH)->SetWindowText(strPath);
+		_cstrDBPath = strPath;
+	} else { 
+
+		GetDlgItem(IDC_EDIT_DB_PATH)->SetWindowText(_cstrDBPath);
+		return; 
+	}
 }
 
 
@@ -90,6 +95,7 @@ void LibSettingView::OnBnClickedQueryCompound() {
 	int compoundID = _ttoi(cstrCompoundID);
 	if (compoundID <= 0) {
 		::MessageBox(NULL, _T("指定的化合物ID范围必须大于0"), _T("警告"), MB_OK | MB_ICONWARNING);
+		return;
 	}
 	// 从当前谱库搜索
 	std::string sqlitePath = CT2A(_cstrDBPath);
@@ -102,16 +108,41 @@ void LibSettingView::OnBnClickedQueryCompound() {
 
 
 void LibSettingView::OnBnClickedCreateDB() {
+
 	CString cstrPath = _T("");
 	CFileDialog fileDlg(FALSE, _T("db"), NULL, OFN_HIDEREADONLY, _T("谱库数据库 (*.db)|*.db||"), NULL);
 
-	if (fileDlg.DoModal()) {
+	if (fileDlg.DoModal() == IDOK) {
 		cstrPath = fileDlg.GetPathName();
 	} else { return; }
 
 	// TODO: 检测是否命名冲突
+	
+	HANDLE hFile;
+	hFile = CreateFile(cstrPath, GENERIC_WRITE,FILE_SHARE_WRITE , NULL,OPEN_ALWAYS,FILE_ATTRIBUTE_NORMAL,NULL);
+	if (hFile == INVALID_HANDLE_VALUE) {
+		::MessageBox(NULL, _T("新建化合物库 失败"), _T("警告"), MB_OK | MB_ICONWARNING);
+		return;
+	}
+	CloseHandle(hFile);
+
 	const std::string strPath = CT2A(cstrPath);
 	SqliteController sqliteController(strPath);
-	GetDlgItem(IDC_EDIT_DB_PATH)->SetWindowText(cstrPath);
-	_cstrDBPath = cstrPath;
+	
+	// 建立新表
+	bool success = sqliteController.initTables();
+	if (success) {
+		CString dbName = fileDlg.GetFileName();
+		CString msgText = _T("新建化合物库 ") + dbName + _T(" 成功");
+		::MessageBox(NULL, msgText, _T("通知"), MB_OK);
+
+		GetDlgItem(IDC_EDIT_DB_PATH)->SetWindowText(cstrPath);
+		_cstrDBPath = cstrPath;
+
+	} else {
+		::MessageBox(NULL, _T("新建化合物库 失败"), _T("警告"), MB_OK | MB_ICONWARNING);
+
+		GetDlgItem(IDC_EDIT_DB_PATH)->SetWindowText(_T(""));
+		_cstrDBPath = _T("");
+	}
 }

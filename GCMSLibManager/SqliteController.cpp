@@ -52,14 +52,18 @@ SqliteController::SqliteController(const std::string &file): //可以分散成3个文件
 	_ppDB(NULL) { //TODO: 表必须已经存在
 
 		init_openSQLite(file); 
-		pre_proccess();
+		//pre_proccess();
 }
 SqliteController::~SqliteController(void) { 
 	sqlite3_close(_ppDB);
 }
 bool SqliteController::init_openSQLite(const std::string &file) {
 
-	int result = sqlite3_open_v2(file.c_str(), &_ppDB, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
+	std::string asciiFile = file;
+	std::string utf8File = ascii2utf8(asciiFile);
+
+	// 如果是中文名必须先转码
+	int result = sqlite3_open_v2(utf8File.c_str(), &_ppDB, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
 	if (result != SQLITE_OK) {
 		std::cerr << "init_openSQLite -> sqlite3_open_v2[" << result << "] " << sqlite3_errmsg(_ppDB) << " " << sqlite3_errcode(_ppDB) << std::endl;
 		sqlite3_close(_ppDB);
@@ -162,6 +166,12 @@ void SqliteController::pre_proccess() {
 	//dq_pre_buildCompound();
 	//dq_pre_buildFilter();
 }
+bool SqliteController::initTables() {
+	createTable(CREATE_TABLE_COMPOUND, 1, CREATE_INDEX_MAXX_ON_COMPOUND);
+	createTable(CREATE_TABLE_FILTER, 2, CREATE_INDEX_X_ON_FILTER, CREATE_INDEX_RANK_ON_FILTER);
+
+	return !checkConnectionError();
+}
 void SqliteController::createTable(const char* tableName, int indexNumber, ...) {
 	
 	int rc;
@@ -192,7 +202,6 @@ void SqliteController::createTable(const char* tableName, int indexNumber, ...) 
 			std::cerr << "create" << indexName << " -> sqlite3_step[" << rc << "] " << sqlite3_errmsg(_ppDB) << " " << sqlite3_errcode(_ppDB) << std::endl;
 		}
 		sqlite3_finalize(statement);
-		checkConnectionError();
 	}
 
 	va_end(args);
@@ -506,6 +515,46 @@ void SqliteController::storePeakData(const PeakPoint& aPoint) {
 	}
 }
 // - 内部接口
+std::wstring SqliteController::acsii2wideByte(std::string& strascii) {  
+	int widesize = MultiByteToWideChar (CP_ACP, 0, (char*)strascii.c_str(), -1, NULL, 0);  
+	if (widesize == ERROR_NO_UNICODE_TRANSLATION) {  
+		throw std::exception("Invalid UTF-8 sequence.");  
+	}  
+	if (widesize == 0) {  
+		throw std::exception("Error in conversion.");  
+	}  
+
+	std::vector<wchar_t> resultstring(widesize);  
+	int convresult = MultiByteToWideChar (CP_ACP, 0, (char*)strascii.c_str(), -1, &resultstring[0], widesize);  
+
+	if (convresult != widesize) {  
+		throw std::exception("La falla!");  
+	}  
+
+	return std::wstring(&resultstring[0]);  
+}  
+std::string SqliteController::unicode2utf8(const std::wstring& wString) {
+	int utf8size = ::WideCharToMultiByte(CP_UTF8, 0, wString.c_str(), -1, NULL, 0, NULL, NULL);  
+	if (utf8size == 0) {  
+		throw std::exception("Error in conversion.");  
+	}  
+
+	std::vector<char> resultstring(utf8size);  
+	int convresult = ::WideCharToMultiByte(CP_UTF8, 0, wString.c_str(), -1, &resultstring[0], utf8size, NULL, NULL);  
+
+	if (convresult != utf8size) {  
+		throw std::exception("La falla!");  
+	}  
+
+	return std::string(&resultstring[0]); 
+}
+std::string SqliteController::ascii2utf8(std::string& strAsciiCode) {
+	std::string strRet("");  
+	std::wstring wstr = acsii2wideByte(strAsciiCode);  
+	strRet = unicode2utf8(wstr);  
+	return strRet;  
+}
+
 void SqliteController::queryCompoundData(std::vector<Compound> &selectedCompounds) {
 
 	if (!selectedCompounds.empty()) { selectedCompounds.clear(); }
@@ -920,6 +969,7 @@ void SqliteController::dq_pre_buildFilter() {
 
 	sqlite3_exec(_ppDB, "COMMIT;", 0, 0, 0);
 }
+// - 过滤
 void SqliteController::dq_filterPeakByTwoMass(const Compound &aCompound, int* compoundIDs) {
 
 	const std::string strPeakData = aCompound._peakData;
@@ -1004,7 +1054,6 @@ void SqliteController::dq_filterPeakBy14(const std::vector<FilterPoint> &filterP
 	}
 	//std::cout << compoundIDs[0] << " TOGO" << std::endl;
 }
-
 void SqliteController::_filterPeakBy08(const std::vector<FilterPoint> &filterPoints, int* compoundIDs) {
 	// 按未知物质 1-8 个最高Y对应 X 在 是否处于 Filter 取对应存在 8-16 个YrX最大对应的 X 的范围内
 	 
@@ -1055,43 +1104,6 @@ void SqliteController::_filterPeakBy08(const std::vector<FilterPoint> &filterPoi
 	}
 	//std::cout << compoundIDs[0] << "\t Found. ";
 }
-
-
-//void SqliteController::dq_filterCompounds(const Compound& unknownCompound, int *compoundIDs) {
-//
-//	// 未知峰 >=8, 未知峰 1-8 的X 对应落在 YrX排序后 8~15 个谱库峰的 X 范围内，范围外则滤除
-//
-//	std::string strPeakData = unknownCompound._peakData;
-//	const int peakCount = unknownCompound._peakCount;
-//	if (peakCount < 8) return;
-//
-//	//static double filterTime = 0.0f;
-//	//double timeStart = (double)clock();
-//	//double timeFinish = (double)clock();
-//
-//	// 从未知峰依次（1-8个峰）取上下限
-//	const int filterPeakLimitNumbers = 8; //
-//	std::vector<FilterPoint> unknownPeakPoints; 
-//	unknownPeakPoints.resize(peakCount);
-//	pre_parsePeakDataString(strPeakData, peakCount, unknownPeakPoints);
-//	nth_element(unknownPeakPoints.begin(), 
-//		unknownPeakPoints.begin() + filterPeakLimitNumbers, 
-//		unknownPeakPoints.end(), 
-//		SqliteController::filterPointCompare_YrX);
-//
-//	std::vector<FilterPoint> nthPoints;
-//	nthPoints.insert(nthPoints.end(), unknownPeakPoints.begin(), unknownPeakPoints.begin() + filterPeakLimitNumbers);
-//	//
-//	
-//	//dq_filterPeakBy08(nthPoints, compoundIDs);
-//	dq_filterPeakBy14(nthPoints, compoundIDs);
-//
-//
-//	//timeFinish = (double)clock();
-//	//filterTime += timeFinish - timeStart;
-//	//std::cout << "FilterComps:\t"  << filterTime << std::endl;
-//}
-
 void SqliteController::filterCompounds_C(const Compound& testCompound, int *compoundIDs) {
 
 	const int peakCount = testCompound._peakCount;
@@ -1112,7 +1124,6 @@ void SqliteController::filterCompounds_C(const Compound& testCompound, int *comp
 
 	//dq_filterPeakBy14(nthPoints, compoundIDs);
 }
-
 void SqliteController::filterCompounds_D(const Compound& testCompound, int *compoundIDs) {
 
 	const int peakCount = testCompound._peakCount;
@@ -1133,8 +1144,6 @@ void SqliteController::filterCompounds_D(const Compound& testCompound, int *comp
 
 	dq_filterPeakBy14(nthPoints, compoundIDs);
 }
-
-
 void SqliteController::filterCompounds(const Compound& testCompound, int *compoundIDs) {
 /*
 	【X】筛选方式 TypeA（testCompound峰数目≤5，原始数据 X，Y）
@@ -1185,3 +1194,4 @@ void SqliteController::filterCompounds(const Compound& testCompound, int *compou
 	//delete [] C_IDs;
 	//delete [] B_IDs;
 }
+
