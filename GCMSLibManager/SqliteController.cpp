@@ -42,7 +42,7 @@
 #define SELECT_PEAKDATA_BY_RANK	"SELECT PeakCount, PeakData FROM CompoundInfo ORDER BY CompoundID LIMIT ? OFFSET ?"
 #define SELECT_PEAKPOINTS_BY_ID	"SELECT x, y FROM [PeakData] WHERE CompoundID = ? LIMIT ?"
 // -Insert
-#define INSERT_COMPOUND_DATA  "INSERT OR REPLACE INTO CompoundInfo ([CompoundID], [CompoundName], [Formula], [MassWeight], [CasNo], [PeakCount], [PeakData]) VALUES (?, ?, ?, ?, ?, ?, ?);"
+#define INSERT_COMPOUND_DATA  "INSERT OR REPLACE INTO [Compound] ([CompoundID], [CompoundName], [Formula], [MassWeight], [CasNo], [PeakCount], [MaxX], [PeakData]) VALUES (?, ?, ?, ?, ?, ?, ?, ?);"
 #define INSERT_PEAK_DATA	  "INSERT OR REPLACE INTO [PeakData] ([CompoundID], [x], [y]) VALUES (?, ?, ?);"
 #define INSERT_FILTER_DATA	  "INSERT OR REPLACE INTO [Filter] ([CompoundID], [X], [Y], [YrX], [Rank]) VALUES (?, ?, ?, ?, ?);"
 
@@ -147,10 +147,6 @@ void SqliteController::libSearch(Compound testCompound, std::vector<Compound> &l
 
 	peaks.clear(); 
 }
-
-
-
-
 
 
 // - 外部接口提供
@@ -485,7 +481,7 @@ void SqliteController::dq_getPeakPoints(std::vector<PeakPoint>& peakPoints) { //
 // 存 / 改
 void SqliteController::storeCompound(const Compound& aCompound) {
 
-	// TODO: VERIFY compound datas
+	// 写入的数据已经通过内容格式验证
 	sqlite3_stmt *statement;
 	sqlite3_prepare_v2(_ppDB, INSERT_COMPOUND_DATA, -1, &statement, NULL);
 	
@@ -495,7 +491,8 @@ void SqliteController::storeCompound(const Compound& aCompound) {
 		(sqlite3_bind_int(statement,  4, aCompound._massWeight) == SQLITE_OK) &&
 		(sqlite3_bind_text(statement, 5, aCompound._casNo.c_str(), -1, SQLITE_STATIC) == SQLITE_OK) &&
 		(sqlite3_bind_int(statement,  6, aCompound._peakCount) == SQLITE_OK) &&
-		(sqlite3_bind_text(statement, 7, aCompound._peakData.c_str(), -1, SQLITE_STATIC) == SQLITE_OK)) {
+		(sqlite3_bind_int(statement,  7, aCompound._maxX) == SQLITE_OK) &&
+		(sqlite3_bind_text(statement, 8, aCompound._peakData.c_str(), -1, SQLITE_STATIC) == SQLITE_OK)) {
 
 		   sqlite3_step(statement);
 		   sqlite3_reset(statement);

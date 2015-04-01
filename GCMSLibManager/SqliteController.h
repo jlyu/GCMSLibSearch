@@ -61,11 +61,10 @@ public:
 	void SqliteController::dq_getPeakPoints(std::vector<PeakPoint>& peakPoints);
 
 	// ÂË
+	void SqliteController::_filterPeakBy08(const std::vector<FilterPoint> &filterPoints, int* compoundIDs);
 	void SqliteController::filterCompounds(const Compound& testCompound, int *compoundIDs);
 	void SqliteController::filterCompounds_C(const Compound& testCompound, int *compoundIDs);
 	void SqliteController::filterCompounds_D(const Compound& testCompound, int *compoundIDs);
-
-	void SqliteController::_filterPeakBy08(const std::vector<FilterPoint> &filterPoints, int* compoundIDs);
 
 
 	// Ôö/¸Ä

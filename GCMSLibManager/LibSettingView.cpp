@@ -14,8 +14,8 @@ IMPLEMENT_DYNAMIC(LibSettingView, CDialogEx)
 LibSettingView::LibSettingView(CWnd* pParent /*=NULL*/)
 	: CDialogEx(LibSettingView::IDD, pParent)
 {
-	_defaultDBPath = CString(_T("E:\\GCMSLibSearch\\GCMSLibSearch\\nist.db"));
-	_cstrDBPath = _defaultDBPath;
+	_defaultDBPath = CString(_T("E:\\GCMSLibSearch\\GCMSLibSearch\\nist.db")); // TODO: 用MD5绑定文件
+	_currentDBPath = _defaultDBPath;
 }
 
 LibSettingView::~LibSettingView()
@@ -35,6 +35,13 @@ void LibSettingView::DoDataExchange(CDataExchange* pDX)
 }
 
 void LibSettingView::setCompoundsOnEditCtrls(const Compound &aCompound) {
+
+	if (aCompound._compoundID < 1 || aCompound._compoundName == "") {
+		::MessageBox(NULL, _T("此谱库内不存在该化合物"), _T("通知"), MB_OK);
+		clearCompoundsOnEditCtrls();
+		return;
+	}
+
 	CString cstrMassWeight;
 	cstrMassWeight.Format(_T("%d"), aCompound._massWeight);
 
@@ -59,12 +66,80 @@ void LibSettingView::getCompoundsOnEditCtrls(Compound &aCompound) {
 	aCompound._casNo = CT2A(cstrCas);
 	aCompound._peakData = CT2A(cstrPeakData);
 }
+void LibSettingView::clearCompoundsOnEditCtrls() {
+	const CString E = _T("");
+	GetDlgItem(IDC_EDIT_COMPOUND_NAME)->SetWindowText(E);
+	GetDlgItem(IDC_EDIT_FORMULA)->SetWindowText(E);
+	GetDlgItem(IDC_EDIT_MASSWEIGHT)->SetWindowText(E);
+	GetDlgItem(IDC_EDIT_CASNO)->SetWindowText(E);
+	GetDlgItem(IDC_EDIT_PEAKDATA)->SetWindowText(E);
+}
+int  LibSettingView::checkCompound(Compound &aCompound) {
+	const std::string E = "";
+	if (aCompound._compoundName == E || 
+		aCompound._formula == E || 
+		aCompound._casNo == E || 
+		aCompound._peakData == E) {
+		return CHECK_FIND_NULL;
+	}
 
+	const int massWeight = aCompound._massWeight;
+	if (massWeight < 0) {
+		return CHECK_FIND_MINUS;
+	}
+
+	// 验证 PeakData
+	int max_X = 0;
+	const std::string strPeakData = aCompound._peakData;
+	bool checkPass = checkPeakDataString(strPeakData, max_X);
+	if (!checkPass) {
+		return CHECK_PEAK_FAIL;
+	}
+	aCompound._maxX = max_X;
+
+	return CHECK_OK;
+}
+
+bool LibSettingView::checkPeakDataString(const std::string strPeakData, int& maxX) {
+	// strPeakData 格式形如：12 110;13 220;14 999;15 25;26 12;27 58;28 179;29 20;40 22;41 110;42 425;43 11;
+	// 1. X 是递增的
+	// 2. X 和 Y 的范围[1,9999]
+
+	int prev_X = 0;
+
+	std::string::size_type i = 0;
+	std::string::size_type j = strPeakData.find(';');
+
+	while (j != std::string::npos) {
+		std::string strXY = strPeakData.substr(i, j-i);
+		std::string::size_type w = strXY.find(' ');
+		std::string strX = strXY.substr(0, w);
+		std::string strY = strXY.substr(w+1, strXY.length());
+
+		int x = atoi(strX.c_str());
+		int y = atoi(strY.c_str());
+
+		if (x < 1 || x > 10000) { return false; }
+		if (y < 1 || y > 10000) { return false; }
+		if (x <= prev_X) { return false; }
+		prev_X = x;
+
+		if (x > maxX) {
+			maxX = x;
+		}
+
+		i = ++j;
+		j = strPeakData.find(';', j);
+	}
+
+	return true;
+}
 
 BEGIN_MESSAGE_MAP(LibSettingView, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_CHOOSE_DB, &LibSettingView::OnBnClickedChooseDB)
 	ON_BN_CLICKED(IDC_BUTTON_QUERY_COMPOUND, &LibSettingView::OnBnClickedQueryCompound)
 	ON_BN_CLICKED(IDC_BUTTON_CREATE_DB, &LibSettingView::OnBnClickedCreateDB)
+	ON_BN_CLICKED(IDC_BUTTON_SAVE_COMPOUND, &LibSettingView::OnBnClickedSaveCompound)
 END_MESSAGE_MAP()
 
 
@@ -79,10 +154,10 @@ void LibSettingView::OnBnClickedChooseDB() {
 
 		strPath = fileDlg.GetPathName();
 		GetDlgItem(IDC_EDIT_DB_PATH)->SetWindowText(strPath);
-		_cstrDBPath = strPath;
+		_currentDBPath = strPath;
 	} else { 
 
-		GetDlgItem(IDC_EDIT_DB_PATH)->SetWindowText(_cstrDBPath);
+		GetDlgItem(IDC_EDIT_DB_PATH)->SetWindowText(_currentDBPath);
 		return; 
 	}
 }
@@ -98,7 +173,7 @@ void LibSettingView::OnBnClickedQueryCompound() {
 		return;
 	}
 	// 从当前谱库搜索
-	std::string sqlitePath = CT2A(_cstrDBPath);
+	std::string sqlitePath = CT2A(_currentDBPath);
 	SqliteController sqliteController(sqlitePath);
 	Compound compound = sqliteController.getCompound(compoundID);
 
@@ -117,15 +192,6 @@ void LibSettingView::OnBnClickedCreateDB() {
 	} else { return; }
 
 	// TODO: 检测是否命名冲突
-	
-	HANDLE hFile;
-	hFile = CreateFile(cstrPath, GENERIC_WRITE,FILE_SHARE_WRITE , NULL,OPEN_ALWAYS,FILE_ATTRIBUTE_NORMAL,NULL);
-	if (hFile == INVALID_HANDLE_VALUE) {
-		::MessageBox(NULL, _T("新建化合物库 失败"), _T("警告"), MB_OK | MB_ICONWARNING);
-		return;
-	}
-	CloseHandle(hFile);
-
 	const std::string strPath = CT2A(cstrPath);
 	SqliteController sqliteController(strPath);
 	
@@ -137,12 +203,57 @@ void LibSettingView::OnBnClickedCreateDB() {
 		::MessageBox(NULL, msgText, _T("通知"), MB_OK);
 
 		GetDlgItem(IDC_EDIT_DB_PATH)->SetWindowText(cstrPath);
-		_cstrDBPath = cstrPath;
+		_currentDBPath = cstrPath;
 
 	} else {
 		::MessageBox(NULL, _T("新建化合物库 失败"), _T("警告"), MB_OK | MB_ICONWARNING);
 
 		GetDlgItem(IDC_EDIT_DB_PATH)->SetWindowText(_T(""));
-		_cstrDBPath = _T("");
+		_currentDBPath = _T("");
 	}
+}
+
+
+void LibSettingView::OnBnClickedSaveCompound() {
+
+	// 检查当前谱库是否可以修改
+	if (_currentDBPath == _defaultDBPath) {
+		::MessageBox(NULL, _T("当前谱库为系统默认谱库，不能修改"), _T("警告"), MB_OK | MB_ICONWARNING);
+		return;
+	}
+
+	// 验证compound有效性
+	Compound aCompound;
+	getCompoundsOnEditCtrls(aCompound);
+
+	int checkResult = checkCompound(aCompound);
+	if (checkResult != CHECK_OK) {
+
+		if (checkResult == CHECK_FIND_NULL) {
+			::MessageBox(NULL, _T("当前添加化合物的信息不能遗漏任意一项"), _T("警告"), MB_OK | MB_ICONWARNING);
+		}
+
+		if (checkResult == CHECK_FIND_MINUS) {
+			::MessageBox(NULL, _T("分子量范围应该在 1~9999 之间"), _T("警告"), MB_OK | MB_ICONWARNING);
+		}
+
+		if (checkResult == CHECK_PEAK_FAIL) {
+			::MessageBox(NULL, _T("峰数据格式错误 应形如 X1 Y1;X2 Y2;X3 Y3 (X1 < X2 < X3)"), _T("警告"), MB_OK | MB_ICONWARNING);
+		}
+
+		if (checkResult == CHECK_MASS_FAIL) {
+			::MessageBox(NULL, _T("峰数据中发现的分子量与填写的分子量不符"), _T("警告"), MB_OK | MB_ICONWARNING);
+		}
+
+		return;
+	}
+
+	const std::string strPath = CT2A(_currentDBPath);
+	SqliteController sqliteController(strPath);
+	
+	// 系统分派ID号
+
+	sqliteController.storeCompound(aCompound);
+	// 同时处理关联索引
+	
 }
