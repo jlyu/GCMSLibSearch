@@ -90,17 +90,19 @@ int  LibSettingView::checkCompound(Compound &aCompound) {
 
 	// 验证 PeakData
 	int max_X = 0;
+	int peakCount = 0;
 	const std::string strPeakData = aCompound._peakData;
-	bool checkPass = checkPeakDataString(strPeakData, max_X);
+	bool checkPass = checkPeakDataString(strPeakData, max_X, peakCount);
 	if (!checkPass) {
 		return CHECK_PEAK_FAIL;
 	}
 	aCompound._maxX = max_X;
+	aCompound._peakCount = peakCount;
 
 	return CHECK_OK;
 }
 
-bool LibSettingView::checkPeakDataString(const std::string strPeakData, int& maxX) {
+bool LibSettingView::checkPeakDataString(const std::string strPeakData, int& maxX, int& peakCount) {
 	// strPeakData 格式形如：12 110;13 220;14 999;15 25;26 12;27 58;28 179;29 20;40 22;41 110;42 425;43 11;
 	// 1. X 是递增的
 	// 2. X 和 Y 的范围[1,9999]
@@ -118,6 +120,7 @@ bool LibSettingView::checkPeakDataString(const std::string strPeakData, int& max
 
 		int x = atoi(strX.c_str());
 		int y = atoi(strY.c_str());
+		peakCount++;
 
 		if (x < 1 || x > 10000) { return false; }
 		if (y < 1 || y > 10000) { return false; }
@@ -140,12 +143,12 @@ BEGIN_MESSAGE_MAP(LibSettingView, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_QUERY_COMPOUND, &LibSettingView::OnBnClickedQueryCompound)
 	ON_BN_CLICKED(IDC_BUTTON_CREATE_DB, &LibSettingView::OnBnClickedCreateDB)
 	ON_BN_CLICKED(IDC_BUTTON_SAVE_COMPOUND, &LibSettingView::OnBnClickedSaveCompound)
+	ON_BN_CLICKED(IDC_BUTTON_DEL_COMPOUND, &LibSettingView::OnBnClickedDelCompound)
 END_MESSAGE_MAP()
 
 
 // LibSettingView 消息处理程序
-
-
+// - 谱库
 void LibSettingView::OnBnClickedChooseDB() {
 	CString strPath = _T("");
 	CFileDialog fileDlg(TRUE, NULL, NULL, OFN_HIDEREADONLY, _T("谱库数据库 (*.db)|*.db|All Files (*.*)|*.*||"), NULL);
@@ -161,27 +164,6 @@ void LibSettingView::OnBnClickedChooseDB() {
 		return; 
 	}
 }
-
-
-void LibSettingView::OnBnClickedQueryCompound() {
-	// 先拿到 CompoundID
-	CString cstrCompoundID;
-	GetDlgItem(IDC_EDIT_COMPOUND_ID)->GetWindowText(cstrCompoundID);
-	int compoundID = _ttoi(cstrCompoundID);
-	if (compoundID <= 0) {
-		::MessageBox(NULL, _T("指定的化合物ID范围必须大于0"), _T("警告"), MB_OK | MB_ICONWARNING);
-		return;
-	}
-	// 从当前谱库搜索
-	std::string sqlitePath = CT2A(_currentDBPath);
-	SqliteController sqliteController(sqlitePath);
-	Compound compound = sqliteController.getCompound(compoundID);
-
-	// 显示结果
-	setCompoundsOnEditCtrls(compound);
-}
-
-
 void LibSettingView::OnBnClickedCreateDB() {
 
 	CString cstrPath = _T("");
@@ -212,8 +194,24 @@ void LibSettingView::OnBnClickedCreateDB() {
 		_currentDBPath = _T("");
 	}
 }
+// - 化合物
+void LibSettingView::OnBnClickedQueryCompound() {
+	// 先拿到 CompoundID
+	CString cstrCompoundID;
+	GetDlgItem(IDC_EDIT_COMPOUND_ID)->GetWindowText(cstrCompoundID);
+	int compoundID = _ttoi(cstrCompoundID);
+	if (compoundID <= 0) {
+		::MessageBox(NULL, _T("指定的化合物ID范围必须大于0"), _T("警告"), MB_OK | MB_ICONWARNING);
+		return;
+	}
+	// 从当前谱库搜索
+	std::string sqlitePath = CT2A(_currentDBPath);
+	SqliteController sqliteController(sqlitePath);
+	Compound compound = sqliteController.getCompound(compoundID);
 
-
+	// 显示结果
+	setCompoundsOnEditCtrls(compound);
+}
 void LibSettingView::OnBnClickedSaveCompound() {
 
 	// 检查当前谱库是否可以修改
@@ -241,19 +239,29 @@ void LibSettingView::OnBnClickedSaveCompound() {
 			::MessageBox(NULL, _T("峰数据格式错误 应形如 X1 Y1;X2 Y2;X3 Y3 (X1 < X2 < X3)"), _T("警告"), MB_OK | MB_ICONWARNING);
 		}
 
-		if (checkResult == CHECK_MASS_FAIL) {
-			::MessageBox(NULL, _T("峰数据中发现的分子量与填写的分子量不符"), _T("警告"), MB_OK | MB_ICONWARNING);
-		}
-
 		return;
 	}
 
 	const std::string strPath = CT2A(_currentDBPath);
 	SqliteController sqliteController(strPath);
+
+	// TODO: 搜索是否有重复记录
 	
 	// 系统分派ID号
-
+	const int newCompoundID = sqliteController.maxCompoundID() + 1;
+	aCompound._compoundID = newCompoundID;
 	sqliteController.storeCompound(aCompound);
+
 	// 同时处理关联索引
-	
+	sqliteController.storeFiltePoint(aCompound);
+}
+void LibSettingView::OnBnClickedDelCompound() {
+	// 先拿到 CompoundID
+	CString cstrCompoundID;
+	GetDlgItem(IDC_EDIT_COMPOUND_ID)->GetWindowText(cstrCompoundID);
+	int compoundID = _ttoi(cstrCompoundID);
+	if (compoundID <= 0) {
+		::MessageBox(NULL, _T("指定的化合物ID范围必须大于0"), _T("警告"), MB_OK | MB_ICONWARNING);
+		return;
+	}
 }

@@ -29,6 +29,11 @@
 //#endif
 
 class /*LIBMANAGER_API*/ SqliteController {
+private:
+	std::wstring SqliteController::acsii2wideByte(std::string& strascii);
+	std::string SqliteController::unicode2utf8(const std::wstring& wString);
+	std::string SqliteController::ascii2utf8(std::string& strAsciiCode);
+
 public:
 	SqliteController(const std::string &file);
 	~SqliteController(void);
@@ -50,6 +55,7 @@ public:
 	void SqliteController::getPeaksByCompoundIDs(int*, std::vector<Peak>& peaks);
 
 	int SqliteController::totalCompoundCounts(); //化合物总数
+	int SqliteController::maxCompoundID();
 	int SqliteController::maxPeakCount(); //库内最大峰个数
 	Compound SqliteController::getCompound(int compoundID); //按ID获得对应化合物
 	std::vector<Compound> SqliteController::getCompounds(int startCompoundID, int limit); //按起始ID及limit 获取对应化合物
@@ -68,8 +74,9 @@ public:
 
 
 	// 增/改
-	void SqliteController::storeCompound(const Compound& aCompound); //插入或替代化合物
 	void SqliteController::storePeakData(const PeakPoint& aPoint);
+	void SqliteController::storeCompound(const Compound& aCompound); //插入或替代化合物
+	void SqliteController::storeFiltePoint(const Compound& aCompound); //storeCompound后关联索引表（TODO: 考虑2者合并用事物）
 	
 	
 	//Dirty & Quick
@@ -105,10 +112,7 @@ public:
 
 	sqlite3* _ppDB;
 
-private:
-	std::wstring SqliteController::acsii2wideByte(std::string& strascii);
-	std::string SqliteController::unicode2utf8(const std::wstring& wString);
-	std::string SqliteController::ascii2utf8(std::string& strAsciiCode);
+
 	
 };
 

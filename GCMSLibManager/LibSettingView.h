@@ -37,9 +37,10 @@ protected:
 	void getCompoundsOnEditCtrls(Compound &aCompound);
 	void clearCompoundsOnEditCtrls();
 	int  checkCompound(Compound &aCompound); // 在检查后要把maxX写入compound3
-	bool checkPeakDataString(const std::string peakData, int& maxX);
+	bool checkPeakDataString(const std::string peakData, int& maxX, int& peakCount);
 
 public:
 	CString _defaultDBPath; // 系统默认谱库
 	CString _currentDBPath; // 当前使用谱库
+	afx_msg void OnBnClickedDelCompound();
 };
