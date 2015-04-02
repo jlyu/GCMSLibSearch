@@ -243,31 +243,5 @@ void CGCMSLibSearchDlg::OnBnClickedLibSetting() {
 
 void CGCMSLibSearchDlg::OnBnClickedParaSearch() {
 	
-	CString strPath = _T("");
-	CFileDialog fileDlg(FALSE, _T("db"), NULL, OFN_HIDEREADONLY, _T("Æ×¿âÊý¾Ý¿â (*.db)|*.db||"), NULL);
-
-	if (fileDlg.DoModal()) {
-		strPath = fileDlg.GetPathName();
-
-	} else { return; }
-
-	//std::string dBPath = CT2A(strPath);
-	//std::string::size_type pos = dBPath.rfind('.', dBPath.length());
-	//if (pos != std::string::npos) {
-	//	std::string dBSuffix = dBPath.substr(pos + 1, dBPath.length() - pos);
-	//	if (dBSuffix != "db") {
-	//		dBPath += ".db";
-	//	}
-	//} else {
-	//	dBPath += ".db";
-	//}
-	
-
-	// TODO: ¼ì²âÊÇ·ñÃüÃû³åÍ»
-
-
-
-	//SqliteController sqliteController(dBPath);
-	
-	
+	GCMSLibParaSearch(this);
 }

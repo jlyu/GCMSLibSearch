@@ -36,6 +36,10 @@ LIBMANAGERDLL_API VOID GCMSLibSearchStrategy(CWnd* pParent, LibConfig& libConfig
 //		  2. 当前MS峰数据 std::string peakData
 LIBMANAGERDLL_API VOID GCMSLibSetting(CWnd* pParent);
 
+// 【参数检索 对话框界面】
+//
+LIBMANAGERDLL_API VOID GCMSLibParaSearch(CWnd* pParent);
+
 
 class CGCMSLibManagerApp : public CWinApp {
 public:

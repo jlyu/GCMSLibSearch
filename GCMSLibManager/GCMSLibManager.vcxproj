@@ -102,6 +102,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GCMSLibManager.cpp" />
+    <ClCompile Include="LibParaSearchView.cpp" />
     <ClCompile Include="LibSearchStrategyView.cpp" />
     <ClCompile Include="LibSettingView.cpp" />
     <ClCompile Include="SqliteController.cpp" />
@@ -113,6 +114,7 @@
   <ItemGroup>
     <ClInclude Include="Compound.h" />
     <ClInclude Include="GCMSLibManager.h" />
+    <ClInclude Include="LibParaSearchView.h" />
     <ClInclude Include="LibSearchStrategyView.h" />
     <ClInclude Include="LibSettingView.h" />
     <ClInclude Include="match.h" />

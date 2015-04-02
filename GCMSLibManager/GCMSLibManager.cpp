@@ -5,6 +5,7 @@
 #include "GCMSLibManager.h"
 #include "LibSearchStrategyView.h"
 #include "LibSettingView.h"
+#include "LibParaSearchView.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -26,6 +27,13 @@ VOID GCMSLibSetting(CWnd* pParent) {
 
 	LibSettingView libSettingView(pParent);
 	libSettingView.DoModal();
+}
+
+LIBMANAGERDLL_API VOID GCMSLibParaSearch(CWnd* pParent) {
+	AFX_MANAGE_STATE(AfxGetStaticModuleState());
+
+	LibParaSearchView libParaSearchView(pParent);
+	libParaSearchView.DoModal();
 }
 
 //
