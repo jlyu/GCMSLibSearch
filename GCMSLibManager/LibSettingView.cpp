@@ -101,7 +101,6 @@ int  LibSettingView::checkCompound(Compound &aCompound) {
 
 	return CHECK_OK;
 }
-
 bool LibSettingView::checkPeakDataString(const std::string strPeakData, int& maxX, int& peakCount) {
 	// strPeakData 格式形如：12 110;13 220;14 999;15 25;26 12;27 58;28 179;29 20;40 22;41 110;42 425;43 11;
 	// 1. X 是递增的
@@ -256,12 +255,30 @@ void LibSettingView::OnBnClickedSaveCompound() {
 	sqliteController.storeFiltePoint(aCompound);
 }
 void LibSettingView::OnBnClickedDelCompound() {
-	// 先拿到 CompoundID
+	// 检查当前谱库是否可以修改
+	if (_currentDBPath == _defaultDBPath) {
+		::MessageBox(NULL, _T("当前谱库为系统默认谱库，不能修改"), _T("警告"), MB_OK | MB_ICONWARNING);
+		return;
+	}
+
+	// 拿到 CompoundID
 	CString cstrCompoundID;
 	GetDlgItem(IDC_EDIT_COMPOUND_ID)->GetWindowText(cstrCompoundID);
 	int compoundID = _ttoi(cstrCompoundID);
-	if (compoundID <= 0) {
-		::MessageBox(NULL, _T("指定的化合物ID范围必须大于0"), _T("警告"), MB_OK | MB_ICONWARNING);
-		return;
-	}
+
+	// 从当前谱库搜索
+	std::string sqlitePath = CT2A(_currentDBPath);
+	SqliteController sqliteController(sqlitePath);
+	//Compound compound = sqliteController.getCompound(compoundID);
+	//compoundID = compound._compoundID;
+
+	//if (compoundID < 1) {
+	//	::MessageBox(NULL, _T("此谱库内不存在该化合物"), _T("通知"), MB_OK);
+	//	clearCompoundsOnEditCtrls();
+	//	return;
+	//}
+
+	// 删除 （包括关联）
+	sqliteController.deleteCompound(compoundID);
+	clearCompoundsOnEditCtrls();
 }

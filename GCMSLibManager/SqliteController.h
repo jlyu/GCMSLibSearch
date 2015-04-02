@@ -53,7 +53,6 @@ public:
 
 	// 查
 	void SqliteController::getPeaksByCompoundIDs(int*, std::vector<Peak>& peaks);
-
 	int SqliteController::totalCompoundCounts(); //化合物总数
 	int SqliteController::maxCompoundID();
 	int SqliteController::maxPeakCount(); //库内最大峰个数
@@ -72,11 +71,14 @@ public:
 	void SqliteController::filterCompounds_C(const Compound& testCompound, int *compoundIDs);
 	void SqliteController::filterCompounds_D(const Compound& testCompound, int *compoundIDs);
 
-
 	// 增/改
 	void SqliteController::storePeakData(const PeakPoint& aPoint);
 	void SqliteController::storeCompound(const Compound& aCompound); //插入或替代化合物
 	void SqliteController::storeFiltePoint(const Compound& aCompound); //storeCompound后关联索引表（TODO: 考虑2者合并用事物）
+
+	// 删
+	void SqliteController::deleteCompound(const int compoundID);
+	//void SqliteController::deleteFilters(const int compoundID);
 	
 	
 	//Dirty & Quick

@@ -48,7 +48,9 @@
 #define INSERT_COMPOUND_DATA  "INSERT OR REPLACE INTO [Compound] ([CompoundID], [CompoundName], [Formula], [MassWeight], [CasNo], [PeakCount], [MaxX], [PeakData]) VALUES (?, ?, ?, ?, ?, ?, ?, ?);"
 #define INSERT_PEAK_DATA	  "INSERT OR REPLACE INTO [PeakData] ([CompoundID], [x], [y]) VALUES (?, ?, ?);"
 #define INSERT_FILTER_DATA	  "INSERT OR REPLACE INTO [Filter] ([CompoundID], [X], [Y], [YrX], [Rank]) VALUES (?, ?, ?, ?, ?);"
-
+// -Delect
+#define DELETE_COMPOUND_BY_ID	"DELETE FROM [Compound] WHERE CompoundID = ?"
+#define DELETE_FILTER_BY_ID		"DELETE FROM [Filter] WHERE CompoundID = ?"
 
 // -init & deinit
 SqliteController::SqliteController(const std::string &file): //可以分散成3个文件。但是库内部的表结构一致
@@ -568,6 +570,25 @@ void SqliteController::storeFiltePoint(const Compound& aCompound) {
 
 	//sqlite3_exec(_ppDB, "COMMIT;", 0, 0, 0);
 	
+}
+
+// 删
+void SqliteController::deleteCompound(const int compoundID) {
+	sqlite3_stmt *statement;
+	sqlite3_prepare_v2(_ppDB, DELETE_COMPOUND_BY_ID, -1, &statement, NULL);
+
+	if (sqlite3_bind_int(statement,  1, compoundID) == SQLITE_OK) {
+		sqlite3_step(statement);
+		sqlite3_reset(statement);
+	}
+
+	// 同时删除关联索引表内的数据
+	sqlite3_prepare_v2(_ppDB, DELETE_FILTER_BY_ID, -1, &statement, NULL);
+
+	if (sqlite3_bind_int(statement,  1, compoundID) == SQLITE_OK) {
+		sqlite3_step(statement);
+		sqlite3_reset(statement);
+	}
 }
 // - 内部接口
 std::wstring SqliteController::acsii2wideByte(std::string& strascii) {  
