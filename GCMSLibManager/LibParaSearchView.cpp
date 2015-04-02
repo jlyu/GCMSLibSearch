@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "LibParaSearchView.h"
 #include "afxdialogex.h"
+#include "SqliteController.h"
 
 
 // LibParaSearchView ¶Ô»°¿ò
@@ -97,4 +98,7 @@ void LibParaSearchView::OnBnClickedCheckCompoundIdRange() {
 // - ¼ìË÷
 void LibParaSearchView::OnBnClickedButtonLibParaSearch() {
 	
+	std::string sqlitePath = CT2A(_currentDBPath);
+	SqliteController sqliteController(sqlitePath);
+	sqliteController.getCompounds();
 }

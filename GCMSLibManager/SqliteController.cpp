@@ -345,7 +345,6 @@ std::vector<Peak> SqliteController::getPeakDatas(int startCompoundID, int limit)
 	sqlite3_free_table(pazResult);
 	sqlite3_exec(_ppDB, "COMMIT;", 0, 0, 0);*/
 }
-
 void SqliteController::dq_getPeakDatas_v3(int* compoundIDs, std::vector<Peak>& peaks) {
 	// CompoundInfo 全部读入内存，事务批量读
 	const size_t peakSize = compoundIDs[0];
@@ -378,7 +377,61 @@ void SqliteController::dq_getPeakDatas_v3(int* compoundIDs, std::vector<Peak>& p
 
 	sqlite3_finalize(statement);
 }
+void SqliteController::getPeakPoints(int compoundID, unsigned int* x, float* y) {
 
+	int rc;
+	sqlite3_stmt *statement;
+
+	sqlite3_exec(_ppDB, "BEGIN;", 0, 0, 0);
+	rc = sqlite3_prepare_v2(_ppDB, SELECT_XY_FROM_PEAKDATA, -1, &statement, NULL);
+
+
+	for (int i=1; i <= 191436; i++) { //TODO: 批量取
+		if (sqlite3_bind_int(statement, 1, compoundID) == SQLITE_OK) {
+
+			int index = 0;
+			while (sqlite3_step(statement) == SQLITE_ROW) {
+				unsigned int x_ = static_cast<unsigned int>(sqlite3_column_int(statement, 0));
+				float y_ = static_cast<float>(sqlite3_column_int(statement, 1));
+
+				x[index] = x_;
+				y[index] = y_;
+
+				index++;
+			}
+		}
+	}
+
+	sqlite3_exec(_ppDB, "COMMIT;", 0, 0, 0);
+	sqlite3_finalize(statement);
+}
+void SqliteController::dq_getPeakPoints(std::vector<PeakPoint>& peakPoints) { //TBD
+	int rc;
+	sqlite3_stmt* statement;
+	const std::string queryXY = "SELECT [x], [y] FROM [PeakData] WHERE CompoundID = ?";
+	//const std::string queryXY = "SELECT [CompoundID] FROM [PeakData] WHERE x = ?";
+
+	sqlite3_exec(_ppDB, "BEGIN;", 0, 0, 0);
+	rc = sqlite3_prepare_v2(_ppDB, queryXY.c_str(), queryXY.size(), &statement, NULL);
+
+	for (int i=1; i <= 200000; i++) {
+		if (sqlite3_bind_int(statement, 1, i) == SQLITE_OK) {
+
+			while (sqlite3_step(statement) == SQLITE_ROW) {
+
+				//compoundIDs += (const char*)sqlite3_column_text(statementPeakData, 0); 
+				//compoundIDs += ",";
+				//count++;
+			}
+			sqlite3_reset(statement);
+		}
+	}
+
+	sqlite3_exec(_ppDB, "COMMIT;", 0, 0, 0);
+	sqlite3_finalize(statement);
+
+
+}
 Compound SqliteController::getCompound(int compoundID) {
 
 	Compound aCompound;
@@ -432,60 +485,32 @@ std::vector<Compound> SqliteController::getCompounds(int startCompoundID, int li
 	sqlite3_reset(statement);
 	return compounds;
 }
-void SqliteController::getPeakPoints(int compoundID, unsigned int* x, float* y) {
+void SqliteController::getCompounds() {
 
-	int rc;
+	Compound aCompound;
 	sqlite3_stmt *statement;
+	std::string query = "SELECT * FROM Compound\
+							  WHERE ( CompoundID >= 31 AND CompoundID <= 34 )\
+							  AND ( MassWeight >= 18 AND MassWeight <= 60)\
+							  AND CompoundName = 'Water' ";
 
-	sqlite3_exec(_ppDB, "BEGIN;", 0, 0, 0);
-	rc = sqlite3_prepare_v2(_ppDB, SELECT_XY_FROM_PEAKDATA, -1, &statement, NULL);
+	//query = ascii2utf8(query);
 
 
-	for (int i=1; i <= 191436; i++) { //TODO: 批量取
-		if (sqlite3_bind_int(statement, 1, compoundID) == SQLITE_OK) {
-			
-			int index = 0;
-			while (sqlite3_step(statement) == SQLITE_ROW) {
-				unsigned int x_ = static_cast<unsigned int>(sqlite3_column_int(statement, 0));
-				float y_ = static_cast<float>(sqlite3_column_int(statement, 1));
+	sqlite3_prepare_v2(_ppDB, query.c_str(), query.size(), &statement, NULL);
 
-				x[index] = x_;
-				y[index] = y_;
-
-				index++;
-			}
-		}
-	}
-
-	sqlite3_exec(_ppDB, "COMMIT;", 0, 0, 0);
-	sqlite3_finalize(statement);
-}
-void SqliteController::dq_getPeakPoints(std::vector<PeakPoint>& peakPoints) { //TBD
-	int rc;
-	sqlite3_stmt* statement;
-	const std::string queryXY = "SELECT [x], [y] FROM [PeakData] WHERE CompoundID = ?";
-	//const std::string queryXY = "SELECT [CompoundID] FROM [PeakData] WHERE x = ?";
-
-	sqlite3_exec(_ppDB, "BEGIN;", 0, 0, 0);
-	rc = sqlite3_prepare_v2(_ppDB, queryXY.c_str(), queryXY.size(), &statement, NULL);
-
-	for (int i=1; i <= 200000; i++) {
-		if (sqlite3_bind_int(statement, 1, i) == SQLITE_OK) {
-
-			while (sqlite3_step(statement) == SQLITE_ROW) {
-
-				//compoundIDs += (const char*)sqlite3_column_text(statementPeakData, 0); 
-				//compoundIDs += ",";
-				//count++;
-			}
-			sqlite3_reset(statement);
-		}
+	if (sqlite3_step(statement) == SQLITE_ROW) {
+		aCompound._compoundID = sqlite3_column_int(statement, 0);
+		aCompound._compoundName = (const char*)sqlite3_column_text(statement, 1);
+		aCompound._formula = (const char*)sqlite3_column_text(statement, 2);
+		aCompound._massWeight = sqlite3_column_int(statement, 3);
+		aCompound._casNo = (const char*)sqlite3_column_text(statement, 4);
+		aCompound._peakCount = sqlite3_column_int(statement, 5);
+		aCompound._maxX = sqlite3_column_int(statement, 6);
+		aCompound._peakData = (const char*)sqlite3_column_text(statement, 7);
 	}
 	
-	sqlite3_exec(_ppDB, "COMMIT;", 0, 0, 0);
-	sqlite3_finalize(statement);
-
-
+	sqlite3_reset(statement);
 }
 
 // 存 / 改
