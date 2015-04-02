@@ -26,6 +26,7 @@ public:
 	afx_msg void OnBnClickedCreateDB();
 	afx_msg void OnBnClickedQueryCompound();
 	afx_msg void OnBnClickedSaveCompound();
+	afx_msg void OnBnClickedDelCompound();
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 支持
@@ -42,5 +43,5 @@ protected:
 public:
 	CString _defaultDBPath; // 系统默认谱库
 	CString _currentDBPath; // 当前使用谱库
-	afx_msg void OnBnClickedDelCompound();
+	
 };

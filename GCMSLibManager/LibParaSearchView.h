@@ -18,4 +18,11 @@ protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 支持
 
 	DECLARE_MESSAGE_MAP()
+
+
+
+public:
+	CString _defaultDBPath; // 系统默认谱库
+	CString _currentDBPath; // 当前使用谱库
+	afx_msg void OnBnClickedCheckCompoundName();
 };
