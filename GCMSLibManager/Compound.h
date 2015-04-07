@@ -99,12 +99,35 @@ public:
 	SearchPara():_name(""), _cas(""), _formula(""), 
 		_massLower(""), _massUpper(""), _idLower(""), _idUpper("") {}
 	~SearchPara() { }
-	bool isEmpty() {
+	bool isEmpty() const {
 		if ((_name == "") && (_cas == "") && (_formula == "") && 
 			(_massLower == "") && (_massUpper == "") && (_idLower == "") && (_idUpper == "") ) {
 				return true;
 		}
 		return false;
+	}
+	std::string parseWhereQuery() const {
+		if (isEmpty()) return "";
+
+		/*
+		SELECT * FROM Compound WHERE
+								( CompoundID >= 31 AND CompoundID <= 34 ) AND
+								( MassWeight >= 18 AND MassWeight <= 60 ) AND
+								CompoundName = 'Water' AND
+								CasNo = '7782-39-0' AND
+								Formula = 'C20H21ClN2O5' AND
+		*/
+
+		std::string query = "WHERE";
+
+		if (_idLower != "") { query += " ( CompoundID >= " + _idLower + " AND CompoundID <= " + _idUpper + " ) AND"; }
+		if (_massLower != "") { query += " ( MassWeight >= " + _massLower + " AND MassWeight <= " + _massUpper + " ) AND"; }
+		if (_name != "") { query += " CompoundName = '" + _name + "' AND"; }
+		if (_cas != "") { query += " CasNo = '" + _cas + "' AND"; }
+		if (_formula != "") { query += " Formula = '" + _formula + "' AND"; }
+							   
+		return query.substr(0, query.size() - 3);
+		
 	}
 
 	std::string _name;

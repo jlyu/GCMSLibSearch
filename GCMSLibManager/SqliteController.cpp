@@ -486,20 +486,24 @@ std::vector<Compound> SqliteController::getCompounds(int startCompoundID, int li
 	return compounds;
 }
 std::vector<Compound> SqliteController::getCompounds(const SearchPara& searchPara)  {
+	/*
+		SELECT * FROM Compound WHERE
+									( CompoundID >= 31 AND CompoundID <= 34 ) 
+								AND ( MassWeight >= 18 AND MassWeight <= 60 )
+								AND CompoundName = 'Water' 
+	*/
 	std::vector<Compound> compounds;
-	Compound aCompound;
+	if (searchPara.isEmpty()) { return compounds; }
+
 	sqlite3_stmt *statement;
-	std::string query = "SELECT * FROM Compound\
-							  WHERE ( CompoundID >= 31 AND CompoundID <= 34 )\
-							  AND ( MassWeight >= 18 AND MassWeight <= 60)\
-							  AND CompoundName = 'Water' ";
-
-	//query = ascii2utf8(query);
-
+	std::string query = "SELECT * FROM Compound ";
+	const std::string subQuery = searchPara.parseWhereQuery();
+	query += subQuery;
 
 	sqlite3_prepare_v2(_ppDB, query.c_str(), query.size(), &statement, NULL);
 
 	if (sqlite3_step(statement) == SQLITE_ROW) {
+		Compound aCompound;
 		aCompound._compoundID = sqlite3_column_int(statement, 0);
 		aCompound._compoundName = (const char*)sqlite3_column_text(statement, 1);
 		aCompound._formula = (const char*)sqlite3_column_text(statement, 2);
@@ -508,8 +512,9 @@ std::vector<Compound> SqliteController::getCompounds(const SearchPara& searchPar
 		aCompound._peakCount = sqlite3_column_int(statement, 5);
 		aCompound._maxX = sqlite3_column_int(statement, 6);
 		aCompound._peakData = (const char*)sqlite3_column_text(statement, 7);
+		compounds.push_back(aCompound);
 	}
-	
+
 	sqlite3_reset(statement);
 	return compounds;
 }
