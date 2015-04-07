@@ -15,7 +15,6 @@ LibSearchStrategyView::LibSearchStrategyView(CWnd* pParent /*=NULL*/, LibConfig&
 
 		_libConfig = libConfig;
 }
-
 LibSearchStrategyView::~LibSearchStrategyView()
 {
 }
@@ -24,21 +23,11 @@ void LibSearchStrategyView::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
 }
-
 BOOL LibSearchStrategyView::OnInitDialog() {
 	CDialogEx::OnInitDialog();
 	initCtrls();
 	return TRUE;
 }
-
-
-BEGIN_MESSAGE_MAP(LibSearchStrategyView, CDialogEx)
-	ON_BN_CLICKED(IDC_BUTTON_PATH1, &LibSearchStrategyView::OnBnClickedChoosePath1)
-	ON_BN_CLICKED(IDC_BUTTON_PATH2, &LibSearchStrategyView::OnBnClickedChoosePath2)
-	ON_BN_CLICKED(IDC_BUTTON_PATH3, &LibSearchStrategyView::OnBnClickedChoosePath3)
-	ON_BN_CLICKED(IDOK, &LibSearchStrategyView::OnBnClickedOk)
-END_MESSAGE_MAP()
-
 void LibSearchStrategyView::initCtrls() {
 	CString cstrMinMass1, cstrMinMass2, cstrMinMass3;
 	CString cstrUpperMass, cstrLowerMass, cstrMatchLimit;
@@ -48,7 +37,7 @@ void LibSearchStrategyView::initCtrls() {
 	cstrUpperMass.Format(_T("%d"), _libConfig._upperMass);
 	cstrLowerMass.Format(_T("%d"), _libConfig._lowerMass);
 	cstrMatchLimit.Format(_T("%d"), _libConfig._matchLimitNumber);
-	
+
 	GetDlgItem(IDC_EDIT_DB_PATH1)->SetWindowText(CString(_libConfig._dbPath1st.c_str()));
 	GetDlgItem(IDC_EDIT_DB_PATH2)->SetWindowText(CString(_libConfig._dbPath2nd.c_str()));
 	GetDlgItem(IDC_EDIT_DB_PATH3)->SetWindowText(CString(_libConfig._dbPath3rd.c_str()));
@@ -61,7 +50,6 @@ void LibSearchStrategyView::initCtrls() {
 
 	( (CButton*)GetDlgItem(IDC_CHECK_UNIQUE) )->SetCheck(_libConfig._isUnique);
 }
-
 CString LibSearchStrategyView::getFilePath() {
 	CString strPath = _T("");
 	CFileDialog fileDlg(TRUE, NULL, NULL, OFN_HIDEREADONLY, _T("谱库数据库 (*.db)|*.db|All Files (*.*)|*.*||"), NULL);
@@ -72,27 +60,27 @@ CString LibSearchStrategyView::getFilePath() {
 	return strPath;
 }
 
+BEGIN_MESSAGE_MAP(LibSearchStrategyView, CDialogEx)
+	ON_BN_CLICKED(IDC_BUTTON_PATH1, &LibSearchStrategyView::OnBnClickedChoosePath1)
+	ON_BN_CLICKED(IDC_BUTTON_PATH2, &LibSearchStrategyView::OnBnClickedChoosePath2)
+	ON_BN_CLICKED(IDC_BUTTON_PATH3, &LibSearchStrategyView::OnBnClickedChoosePath3)
+	ON_BN_CLICKED(IDOK, &LibSearchStrategyView::OnBnClickedOk)
+END_MESSAGE_MAP()
+
+
 // LibSearchStrategyView 消息处理程序
-
-
 void LibSearchStrategyView::OnBnClickedChoosePath1() {
 	CString strPath = getFilePath();
 	GetDlgItem(IDC_EDIT_DB_PATH1)->SetWindowText(strPath);
 }
-
-
 void LibSearchStrategyView::OnBnClickedChoosePath2() {
 	CString strPath = getFilePath();
 	GetDlgItem(IDC_EDIT_DB_PATH2)->SetWindowText(strPath);
 }
-
-
 void LibSearchStrategyView::OnBnClickedChoosePath3() {
 	CString strPath = getFilePath();
 	GetDlgItem(IDC_EDIT_DB_PATH3)->SetWindowText(strPath);
 }
-
-
 void LibSearchStrategyView::OnBnClickedOk() {
 	
 	CString cstrPath1, cstrPath2, cstrPath3;

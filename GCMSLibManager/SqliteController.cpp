@@ -21,7 +21,7 @@
 // -Table
 #define CREATE_TABLE_PEAKDATA "CREATE TABLE IF NOT EXISTS [PeakData] ([ID] INTEGER PRIMARY KEY AUTOINCREMENT, [CompoundID] INTEGER, [x] INTEGER, [y] INTEGER);"
 #define CREATE_TABLE_MASSHASH "CREATE TABLE IF NOT EXISTS [MassHash] ([Mass] INTEGER PRIMARY KEY, [IDs] CHAR);"
-#define CREATE_TABLE_COMPOUND "CREATE TABLE IF NOT EXISTS [Compound] ([CompoundID] INTEGER PRIMARY KEY, [CompoundName] CHAR, [Formula] CHAR(255), [MassWeight] INTEGER, [CasNo] CHAR(255), [PeakCount] INTEGER, [MaxX] INTEGER, [PeakData] CHAR);"
+#define CREATE_TABLE_COMPOUND "CREATE TABLE IF NOT EXISTS [Compound] ([CompoundID] INTEGER PRIMARY KEY, [CompoundName] TEXT COLLATE RTRIM, [Formula] TEXT COLLATE NOCASE, [MassWeight] INTEGER, [CasNo] TEXT, [PeakCount] INTEGER, [MaxX] INTEGER, [PeakData] TEXT);"
 #define CREATE_TABLE_FILTER	  "CREATE TABLE IF NOT EXISTS [Filter] ([CompoundID] INTEGER, [X] INTEGER, [Y] INTEGER, [YrX] INTEGER, [Rank] INTEGER);"
 
 // -Index
@@ -57,7 +57,7 @@ SqliteController::SqliteController(const std::string &file): //可以分散成3个文件
 	_ppDB(NULL) { //TODO: 表必须已经存在
 
 		init_openSQLite(file); 
-		//pre_proccess();
+		pre_proccess();
 }
 SqliteController::~SqliteController(void) { 
 	sqlite3_close(_ppDB);
@@ -157,8 +157,8 @@ void SqliteController::libSearch(Compound testCompound, std::vector<Compound> &l
 // - 外部接口提供
 void SqliteController::pre_proccess() {
 	// -Create TABLE 
-	//createTable(CREATE_TABLE_COMPOUND, 1, CREATE_INDEX_MAXX_ON_COMPOUND);
-	//createTable(CREATE_TABLE_FILTER, 2, CREATE_INDEX_X_ON_FILTER, CREATE_INDEX_RANK_ON_FILTER);
+	createTable(CREATE_TABLE_COMPOUND, 1, CREATE_INDEX_MAXX_ON_COMPOUND);
+	createTable(CREATE_TABLE_FILTER, 2, CREATE_INDEX_X_ON_FILTER, CREATE_INDEX_RANK_ON_FILTER);
 
 
 	// -Fill in dates
@@ -485,8 +485,8 @@ std::vector<Compound> SqliteController::getCompounds(int startCompoundID, int li
 	sqlite3_reset(statement);
 	return compounds;
 }
-void SqliteController::getCompounds() {
-
+std::vector<Compound> SqliteController::getCompounds(const SearchPara& searchPara)  {
+	std::vector<Compound> compounds;
 	Compound aCompound;
 	sqlite3_stmt *statement;
 	std::string query = "SELECT * FROM Compound\
@@ -511,6 +511,7 @@ void SqliteController::getCompounds() {
 	}
 	
 	sqlite3_reset(statement);
+	return compounds;
 }
 
 // 存 / 改
@@ -989,8 +990,8 @@ void SqliteController::dq_pre_buildCompound(std::vector<Compound> &compounds) {
 	sqlite3_exec(_ppDB, "BEGIN;", NULL, NULL, NULL);
 	for (size_t i = 0; i != compoundSize; i++) {
 		if ((sqlite3_bind_int(statement,  1, compounds[i]._compoundID) == SQLITE_OK) &&
-			(sqlite3_bind_text(statement, 2, compounds[i]._compoundName.c_str(), -1, SQLITE_STATIC) == SQLITE_OK) &&
-			(sqlite3_bind_text(statement, 3, compounds[i]._formula.c_str(), -1, SQLITE_STATIC) == SQLITE_OK) &&
+			(sqlite3_bind_text(statement, 2, compounds[i]._compoundName.c_str(), compounds[i]._compoundName.size()-1, SQLITE_STATIC) == SQLITE_OK) &&
+			(sqlite3_bind_text(statement, 3, compounds[i]._formula.c_str(), compounds[i]._formula.size()-1, SQLITE_STATIC) == SQLITE_OK) &&
 			(sqlite3_bind_int(statement,  4, compounds[i]._massWeight) == SQLITE_OK) &&
 			(sqlite3_bind_text(statement, 5, compounds[i]._casNo.c_str(), -1, SQLITE_STATIC) == SQLITE_OK) &&
 			(sqlite3_bind_int(statement,  6, compounds[i]._peakCount) == SQLITE_OK) &&
@@ -1024,27 +1025,15 @@ void SqliteController::dq_pre_buildFilter() {
 
 		pre_parsePeakDataString(strPeakData, peakCount, tmpFilterPoints);
 
-		FilterPoint aFilterPoint;
-		aFilterPoint._peakPoint._x = compounds[i]._maxX;
-		if (tmpFilterPoints[peakCount -1]._peakPoint._x == compounds[i]._maxX) {
-			aFilterPoint = tmpFilterPoints[peakCount -1];
-		}
 
 		// 凡少于16个峰，（3819个）不收录
 		const int needPeaks = 16;
 		if (peakCount >= needPeaks) {
 			nth_element(tmpFilterPoints.begin(), tmpFilterPoints.begin() + needPeaks, tmpFilterPoints.end(), SqliteController::filterPointCompare_YrX); // 最大的16个 yrx
-			for (int j = 0; j != 16; j++) { tmpFilterPoints[j]._rank = j + 1; } // rank 编号
-			filterPoints.insert(filterPoints.end(), tmpFilterPoints.begin(), tmpFilterPoints.begin() + needPeaks);
+			for (int j = 0; j != 9; j++) { tmpFilterPoints[j]._rank = j + 1; } // rank 编号
+			filterPoints.insert(filterPoints.end(), tmpFilterPoints.begin(), tmpFilterPoints.begin() + 9);
 		} 
 		
-		
-		////再插 MaxX 不重复
-		//bool isPushBack = true;
-		//for (size_t j=0; j!=16 && j!=peakCount; j++) {
-		//	if (tmpFilterPoints[j]._peakPoint._x == aFilterPoint._peakPoint._x) { isPushBack = false; }
-		//}
-		//if (isPushBack) { filterPoints.push_back(aFilterPoint); }
 	}
 
 	// Filter 表 3214346 行数据

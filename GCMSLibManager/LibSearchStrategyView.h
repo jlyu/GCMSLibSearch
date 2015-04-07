@@ -9,6 +9,11 @@ class LibSearchStrategyView : public CDialogEx
 	DECLARE_DYNAMIC(LibSearchStrategyView)
 	enum { IDD = IDD_LIBSEARCHSTRATEGYVIEW };  
 
+	afx_msg void OnBnClickedChoosePath1();
+	afx_msg void OnBnClickedChoosePath2();
+	afx_msg void OnBnClickedChoosePath3();
+	afx_msg void OnBnClickedOk();
+
 public:
 	LibSearchStrategyView(CWnd* pParent, LibConfig& libConfig);   // 标准构造函数
 	virtual ~LibSearchStrategyView();
@@ -25,8 +30,5 @@ private:
 
 public:
 	LibConfig _libConfig;
-	afx_msg void OnBnClickedChoosePath1();
-	afx_msg void OnBnClickedChoosePath2();
-	afx_msg void OnBnClickedChoosePath3();
-	afx_msg void OnBnClickedOk();
+
 };

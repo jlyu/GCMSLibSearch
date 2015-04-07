@@ -50,7 +50,6 @@ public:
 			_maxX(0),
 			_peakData(""),
 			_matchDegree(-1) { }
-
 	~Compound(void) { }
 
 	void print() {
@@ -61,7 +60,6 @@ public:
 		std::cout << "CasNo:" << _casNo << std::endl;
 		std::cout << "PeakCount:" << _peakCount << std::endl;
 	}
-
 	void printBrief() { std::cout << _compoundID << "\t" << _formula << std::endl; }
 
 public:
@@ -94,4 +92,19 @@ public:
 	int _lowerMass;
 	int _matchLimitNumber;
 	bool _isUnique;
+};
+
+class SearchPara {
+public:
+	SearchPara():_name(""), _cas(""), _formula(""), 
+		_massLower(""), _massUpper(""), _idLower(""), _idUpper("") {}
+	~SearchPara() { }
+
+	std::string _name;
+	std::string _cas;
+	std::string _formula;
+	std::string _massLower;
+	std::string _massUpper;
+	std::string _idLower;
+	std::string _idUpper;
 };

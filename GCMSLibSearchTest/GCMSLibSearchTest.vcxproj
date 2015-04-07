@@ -56,7 +56,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>matchdll.lib;GCMSLibSearchDLL.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>matchdll.lib;sqlite3_D.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -77,14 +77,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\GCMSLibSearch\Compound.cpp" />
-    <ClCompile Include="..\GCMSLibSearch\SqliteController.cpp" />
+    <ClCompile Include="..\GCMSLibManager\SqliteController.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\GCMSLibSearch\Compound.h" />
-    <ClInclude Include="..\GCMSLibSearch\sqlite3.h" />
-    <ClInclude Include="..\GCMSLibSearch\SqliteController.h" />
+    <ClInclude Include="..\GCMSLibManager\Compound.h" />
+    <ClInclude Include="..\GCMSLibManager\sqlite3.h" />
+    <ClInclude Include="..\GCMSLibManager\SqliteController.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -2,9 +2,10 @@
 #include <set>
 #include <time.h>
 #include <algorithm>
-#include "../GCMSLibSearch/Compound.h"
-#include "../GCMSLibSearch/match.h"
-#include "../GCMSLibSearch/SqliteController.h"
+
+#include "../GCMSLibManager/Compound.h"
+#include "../GCMSLibManager/match.h"
+#include "../GCMSLibManager/SqliteController.h"
 
 
 void parseCompound(Compound& aCompound, unsigned int *x, float *y) {
@@ -420,23 +421,42 @@ void test_diffSpectrum_v4(SqliteController *pSqlController) {
 	std::cout << "ParseStrings:\t" << parseTime << std::endl;
 	std::cout << "SQLiteSearch:\t" << sqliteTime << std::endl;
 }
-
-
-
-void test_dll_libSearch() {
+void test_init() {
+	SqliteController msController("../nist-copy.db");
 	SqliteController nistController("../nist.db");
-	for (int i = 1; i < 190000; i++) {
-		Compound testCompound = nistController.getCompound(i);
-		std::vector<Compound> libCompounds;
-		nistController.libSearch(testCompound, libCompounds);
-	}
-	
+	std::cout << "-" <<std::endl;
+
+	std::vector<Compound> compounds;
+
+	msController.dq_pre_getCompounds(compounds);
+	nistController.dq_pre_buildCompound(compounds);
+	nistController.dq_pre_buildFilter();
 }
 
+
+//void test_dll_libSearch() {
+//	SqliteController nistController("../nist.db");
+//	for (int i = 1; i < 190000; i++) {
+//		Compound testCompound = nistController.getCompound(i);
+//		std::vector<Compound> libCompounds;
+//		nistController.libSearch(testCompound, libCompounds);
+//	}
+//	
+//}
+
 int main() {
-	 
-	//SqliteController nistController("../nist.db");
-	//std::cout << "-" <<std::endl;
+	
+	//SqliteController msController("../nist-copy.db");
+	SqliteController nistController("../nist.db");
+	std::cout << "-" <<std::endl;
+
+	//std::vector<Compound> compounds;
+
+	//msController.dq_pre_getCompounds(compounds);
+	//nistController.dq_pre_buildCompound(compounds);
+	nistController.dq_pre_buildFilter();
+
+	//msController.getCompounds()
 
 	//int maxIndex = 0;
 	//double maxRunTime = 0.0f;
@@ -458,7 +478,7 @@ int main() {
 	////}
 
 
-	test_dll_libSearch(); 
+	//test_dll_libSearch(); 
 	system("PAUSE");
 	return 0;
 }

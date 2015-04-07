@@ -17,18 +17,15 @@ LibSettingView::LibSettingView(CWnd* pParent /*=NULL*/)
 	_defaultDBPath = CString(_T("E:\\GCMSLibSearch\\GCMSLibSearch\\nist.db")); // TODO: 用MD5绑定文件
 	_currentDBPath = _defaultDBPath;
 }
-
 LibSettingView::~LibSettingView()
 {
 }
-
 BOOL LibSettingView::OnInitDialog() {
 	CDialogEx::OnInitDialog();
 
 	GetDlgItem(IDC_EDIT_DB_PATH)->SetWindowText(_defaultDBPath);
 	return TRUE;
 }
-
 void LibSettingView::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);

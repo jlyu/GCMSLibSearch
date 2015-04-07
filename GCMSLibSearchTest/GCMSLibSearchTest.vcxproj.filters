@@ -18,21 +18,18 @@
     <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="..\GCMSLibSearch\Compound.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\GCMSLibSearch\SqliteController.cpp">
+    <ClCompile Include="..\GCMSLibManager\SqliteController.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\GCMSLibSearch\Compound.h">
+    <ClInclude Include="..\GCMSLibManager\Compound.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\GCMSLibSearch\sqlite3.h">
+    <ClInclude Include="..\GCMSLibManager\sqlite3.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\GCMSLibSearch\SqliteController.h">
+    <ClInclude Include="..\GCMSLibManager\SqliteController.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
