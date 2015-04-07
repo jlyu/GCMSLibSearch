@@ -45,26 +45,7 @@ void LibParaSearchView::DoDataExchange(CDataExchange* pDX)
 	CDialogEx::DoDataExchange(pDX);
 }
 
-int LibParaSearchView::checkSearchPara(const SearchPara& searchPara) {
-
-	// 检查 MASS 和 ID 的上下限 (空值不检查
-	if (searchPara._massLower != "" && searchPara._massUpper != "") {
-		int massLower = atoi( searchPara._massLower.c_str() );
-		int massUpper = atoi( searchPara._massUpper.c_str() );
-		if (massLower < 1) { return CHECK_MASS_LOWER_FAIL; }
-		if (massUpper > 9999) { return CHECK_MASS_UPPER_FAIL; }
-	}
-
-	if (searchPara._idLower != "" && searchPara._idUpper != "") {
-		int idLower = atoi( searchPara._idLower.c_str() );
-		int idUpper = atoi( searchPara._idUpper.c_str() );
-		if (idLower < 1) { return CHECK_ID_LOWER_FAIL; }
-		if (idUpper > _maxCompoundID) { return CHECK_ID_UPPER_FAIL; }
-	}
-	  
-	return CHECK_PASS;
-}
-void LibParaSearchView::getSearchPara(SearchPara& searchPara) {
+void LibParaSearchView::getSearchPara() {
 	CString cstrName, cstrCAS, cstrFormula;
 	CString cstrMassLower, cstrMassUpper;
 	CString cstrIDLower, cstrIDUpper;
@@ -87,14 +68,40 @@ void LibParaSearchView::getSearchPara(SearchPara& searchPara) {
 		GetDlgItem(IDC_EDIT_ID_UPPER)->GetWindowText(cstrIDUpper);
 	}
 
-	searchPara._name = CT2A(cstrName);
-	searchPara._cas = CT2A(cstrCAS);
-	searchPara._formula = CT2A(cstrFormula);
-	searchPara._massLower = CT2A(cstrMassLower);
-	searchPara._massUpper = CT2A(cstrMassUpper);
-	searchPara._idLower = CT2A(cstrIDLower);
-	searchPara._idUpper = CT2A(cstrIDUpper);	
+	_searchPara._name = CT2A(cstrName);
+	_searchPara._cas = CT2A(cstrCAS);
+	_searchPara._formula = CT2A(cstrFormula);
+	_searchPara._massLower = CT2A(cstrMassLower);
+	_searchPara._massUpper = CT2A(cstrMassUpper);
+	_searchPara._idLower = CT2A(cstrIDLower);
+	_searchPara._idUpper = CT2A(cstrIDUpper);	
 }
+int LibParaSearchView::checkSearchPara() {
+
+	getSearchPara();
+
+	if (_searchPara.isEmpty()) {
+		return CHECK_EMPTY;
+	}
+
+	// 检查 MASS 和 ID 的上下限 (空值不检查
+	if (_searchPara._massLower != "" && _searchPara._massUpper != "") {
+		int massLower = atoi( _searchPara._massLower.c_str() );
+		int massUpper = atoi( _searchPara._massUpper.c_str() );
+		if (massLower < 1) { return CHECK_MASS_LOWER_FAIL; }
+		if (massUpper > 9999) { return CHECK_MASS_UPPER_FAIL; }
+	}
+
+	if (_searchPara._idLower != "" && _searchPara._idUpper != "") {
+		int idLower = atoi( _searchPara._idLower.c_str() );
+		int idUpper = atoi( _searchPara._idUpper.c_str() );
+		if (idLower < 1) { return CHECK_ID_LOWER_FAIL; }
+		if (idUpper > _maxCompoundID) { return CHECK_ID_UPPER_FAIL; }
+	}
+	  
+	return CHECK_PASS;
+}
+
 
 
 
@@ -157,12 +164,13 @@ void LibParaSearchView::OnBnClickedCheckCompoundIdRange() {
 }
 // - 检索
 void LibParaSearchView::OnBnClickedButtonLibParaSearch() {
-	// 获得通过验证的检索参数
-	SearchPara searchPara;
-	getSearchPara(searchPara);
 
-	// 验证检索参数
-	int ret = checkSearchPara(searchPara);
+	// 验证当前检索参数
+	int ret = checkSearchPara();
+	if (ret == CHECK_EMPTY) {
+		::MessageBox(NULL, _T("至少输入一项检索参数条件"), _T("通知"), MB_OK);
+		return;
+	}
 	if (ret == CHECK_MASS_LOWER_FAIL || ret == CHECK_MASS_UPPER_FAIL) {
 		::MessageBox(NULL, _T("输入的分子量超出限定范围"), _T("通知"), MB_OK);
 		return;
@@ -174,8 +182,11 @@ void LibParaSearchView::OnBnClickedButtonLibParaSearch() {
 	}
 
 	// 得到参数 全部代入搜索
-	
 	std::string sqlitePath = CT2A(_currentDBPath);
 	SqliteController sqliteController(sqlitePath);
-	std::vector<Compound> compounds = sqliteController.getCompounds(searchPara);
+	
+	// 判定检索结果条目数
+
+	// 输出结果
+	std::vector<Compound> compounds = sqliteController.getCompounds(_searchPara);
 }

@@ -3,10 +3,11 @@
 #include "GCMSLibManager.h"
 
 #define CHECK_PASS					0
-#define CHECK_MASS_LOWER_FAIL		1
-#define CHECK_MASS_UPPER_FAIL		2
-#define CHECK_ID_LOWER_FAIL			3
-#define CHECK_ID_UPPER_FAIL			4
+#define CHECK_EMPTY					1
+#define CHECK_MASS_LOWER_FAIL		2
+#define CHECK_MASS_UPPER_FAIL		3
+#define CHECK_ID_LOWER_FAIL			4
+#define CHECK_ID_UPPER_FAIL			5
 
 // LibParaSearchView 对话框
 
@@ -35,12 +36,13 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 
-	void LibParaSearchView::getSearchPara(SearchPara& searchPara);
-	int LibParaSearchView::checkSearchPara(const SearchPara& searchPara);
+	void LibParaSearchView::getSearchPara();
+	int LibParaSearchView::checkSearchPara();
 
 public:
 	CString _defaultDBPath; // 系统默认谱库
 	CString _currentDBPath; // 当前使用谱库
 
 	int _maxCompoundID;
+	SearchPara _searchPara;
 };

@@ -99,6 +99,13 @@ public:
 	SearchPara():_name(""), _cas(""), _formula(""), 
 		_massLower(""), _massUpper(""), _idLower(""), _idUpper("") {}
 	~SearchPara() { }
+	bool isEmpty() {
+		if ((_name == "") && (_cas == "") && (_formula == "") && 
+			(_massLower == "") && (_massUpper == "") && (_idLower == "") && (_idUpper == "") ) {
+				return true;
+		}
+		return false;
+	}
 
 	std::string _name;
 	std::string _cas;
