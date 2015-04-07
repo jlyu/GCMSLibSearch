@@ -65,6 +65,7 @@ public:
 	Compound SqliteController::getCompound(int compoundID); //按ID获得对应化合物
 	std::vector<Compound> SqliteController::getCompounds(int startCompoundID, int limit); //按起始ID及limit 获取对应化合物
 	std::vector<Compound> SqliteController::getCompounds(const SearchPara& searchPara);
+	int SqliteController::countCompounds(const SearchPara& searchPara);
 	// 滤
 	void SqliteController::_filterPeakBy08(const std::vector<FilterPoint> &filterPoints, int* compoundIDs);
 	void SqliteController::filterCompounds(const Compound& testCompound, int *compoundIDs);

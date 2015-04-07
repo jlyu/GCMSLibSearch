@@ -136,7 +136,7 @@ int LibParaSearchView::checkSearchPara() {
 		_searchPara._idUpper = SSTR(idUpper);
 	}
 
-	// 检查小数,特殊符号等
+	// TODO：检查小数,特殊符号等
 
 
 	setSearchPara();
@@ -227,7 +227,18 @@ void LibParaSearchView::OnBnClickedButtonLibParaSearch() {
 	SqliteController sqliteController(sqlitePath);
 	
 	// 判定检索结果条目数
-
+	int count = sqliteController.countCompounds(_searchPara);
+	if (count > 100) {
+		CString strCount;
+		strCount.Format(_T("%d"), count);
+		CString strMsg = _T("检索到 ") + strCount + _T(" 条化合物结果，只显示前100条数据");
+		::MessageBox(NULL, strMsg, _T("通知"), MB_OK);
+	}
 	// 输出结果
 	std::vector<Compound> compounds = sqliteController.getCompounds(_searchPara);
+
+	LibParaSearchResultView libParaSearchResultView;
+	libParaSearchResultView.DoModal();
+	libParaSearchResultView.fillCompoundList(compounds);
+	
 }

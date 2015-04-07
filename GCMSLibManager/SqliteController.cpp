@@ -500,9 +500,12 @@ std::vector<Compound> SqliteController::getCompounds(const SearchPara& searchPar
 	const std::string subQuery = searchPara.parseWhereQuery();
 	query += subQuery;
 
+	int count = countCompounds(searchPara);
+	if (count > 100) { query += "LIMIT 100"; }
+
 	sqlite3_prepare_v2(_ppDB, query.c_str(), query.size(), &statement, NULL);
 
-	if (sqlite3_step(statement) == SQLITE_ROW) {
+	while (sqlite3_step(statement) == SQLITE_ROW) {
 		Compound aCompound;
 		aCompound._compoundID = sqlite3_column_int(statement, 0);
 		aCompound._compoundName = (const char*)sqlite3_column_text(statement, 1);
@@ -517,6 +520,25 @@ std::vector<Compound> SqliteController::getCompounds(const SearchPara& searchPar
 
 	sqlite3_reset(statement);
 	return compounds;
+}
+int SqliteController::countCompounds(const SearchPara& searchPara) {
+	int count = 0;
+
+	if (searchPara.isEmpty()) { return count; }
+	sqlite3_stmt *statement;
+	std::string query = "SELECT COUNT(*) FROM Compound ";
+	const std::string subQuery = searchPara.parseWhereQuery();
+	query += subQuery;
+
+	sqlite3_prepare_v2(_ppDB, query.c_str(), query.size(), &statement, NULL);
+	if (sqlite3_step(statement) == SQLITE_ROW) {
+		
+		count = sqlite3_column_int(statement, 0);
+		
+	}
+
+	sqlite3_reset(statement);
+	return count;
 }
 
 // ´æ / ¸Ä

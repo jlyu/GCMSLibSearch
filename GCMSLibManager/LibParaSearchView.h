@@ -1,6 +1,8 @@
 #pragma once
 
 #include "GCMSLibManager.h"
+#include "LibParaSearchResultView.h"
+
 #include <sstream>
 #define SSTR( x ) dynamic_cast< std::ostringstream & >( \
 	( std::ostringstream() << std::dec << x ) ).str()
