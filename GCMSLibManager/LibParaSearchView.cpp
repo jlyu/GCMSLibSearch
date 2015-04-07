@@ -237,8 +237,7 @@ void LibParaSearchView::OnBnClickedButtonLibParaSearch() {
 	// Êä³ö½á¹û
 	std::vector<Compound> compounds = sqliteController.getCompounds(_searchPara);
 
-	LibParaSearchResultView libParaSearchResultView;
+	LibParaSearchResultView libParaSearchResultView(compounds);
 	libParaSearchResultView.DoModal();
-	libParaSearchResultView.fillCompoundList(compounds);
 	
 }

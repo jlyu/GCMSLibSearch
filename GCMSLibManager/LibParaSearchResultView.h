@@ -10,10 +10,10 @@ class LibParaSearchResultView : public CDialogEx
 	DECLARE_DYNAMIC(LibParaSearchResultView)
 
 public:
-	LibParaSearchResultView(CWnd* pParent = NULL);   // 标准构造函数
+	LibParaSearchResultView(const std::vector<Compound> &compounds, CWnd* pParent = NULL);   // 标准构造函数
 	virtual ~LibParaSearchResultView();
 
-	void LibParaSearchResultView::fillCompoundList(const std::vector<Compound> &compounds);
+	
 
 // 对话框数据
 	enum { IDD = IDD_LIBPARASEARCHRESULTVIEW };
@@ -24,6 +24,7 @@ protected:
 	DECLARE_MESSAGE_MAP()
 
 	VOID LibParaSearchResultView::initListCtrl();
+	VOID LibParaSearchResultView::fillCompoundList();
 
 public:
 	CListCtrl _compoundsList;
