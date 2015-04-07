@@ -1,13 +1,15 @@
 #pragma once
 
 #include "GCMSLibManager.h"
+#include <sstream>
+#define SSTR( x ) dynamic_cast< std::ostringstream & >( \
+	( std::ostringstream() << std::dec << x ) ).str()
 
 #define CHECK_PASS					0
 #define CHECK_EMPTY					1
-#define CHECK_MASS_LOWER_FAIL		2
-#define CHECK_MASS_UPPER_FAIL		3
-#define CHECK_ID_LOWER_FAIL			4
-#define CHECK_ID_UPPER_FAIL			5
+#define CHECK_MASS_RANGE_FAIL		2
+#define CHECK_ID_RANGE_FAIL			3
+
 
 // LibParaSearchView 对话框
 
@@ -36,6 +38,7 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 
+	void LibParaSearchView::setSearchPara();
 	void LibParaSearchView::getSearchPara();
 	int LibParaSearchView::checkSearchPara();
 
@@ -43,6 +46,7 @@ public:
 	CString _defaultDBPath; // 系统默认谱库
 	CString _currentDBPath; // 当前使用谱库
 
-	int _maxCompoundID;
 	SearchPara _searchPara;
+	int _maxCompoundID;
+	
 };

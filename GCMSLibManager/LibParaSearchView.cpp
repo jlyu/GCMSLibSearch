@@ -7,6 +7,8 @@
 #include "SqliteController.h"
 
 
+
+
 // LibParaSearchView 对话框
 
 IMPLEMENT_DYNAMIC(LibParaSearchView, CDialogEx)
@@ -44,7 +46,34 @@ void LibParaSearchView::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
 }
+void LibParaSearchView::setSearchPara() {
 
+	CString cstrName = CString(_searchPara._name.c_str());
+	CString cstrCAS = CString(_searchPara._cas.c_str());
+	CString cstrFormula = CString(_searchPara._formula.c_str());
+	CString cstrMassLower = CString(_searchPara._massLower.c_str());
+	CString cstrMassUpper = CString(_searchPara._massUpper.c_str());
+	CString cstrIDLower = CString(_searchPara._idLower.c_str());
+	CString cstrIDUpper = CString(_searchPara._idUpper.c_str());
+
+	if ( BST_CHECKED == IsDlgButtonChecked(IDC_CHECK_COMPOUND_NAME) ) {
+		GetDlgItem(IDC_EDIT_COMPOUND_NAME)->SetWindowText(cstrName);
+	}
+	if ( BST_CHECKED == IsDlgButtonChecked(IDC_CHECK_CAS_NO) ) {
+		GetDlgItem(IDC_EDIT_CAS_NO)->SetWindowText(cstrCAS);
+	}
+	if ( BST_CHECKED == IsDlgButtonChecked(IDC_CHECK_FORMULA) ) {
+		GetDlgItem(IDC_EDIT_COMPOUND_FORMULA)->SetWindowText(cstrFormula);
+	}
+	if ( BST_CHECKED == IsDlgButtonChecked(IDC_CHECK_MASS_RANGE) ) {
+		GetDlgItem(IDC_EDIT_MASS_LOWER)->SetWindowText(cstrMassLower);
+		GetDlgItem(IDC_EDIT_MASS_UPPER)->SetWindowText(cstrMassUpper);
+	}
+	if ( BST_CHECKED == IsDlgButtonChecked(IDC_CHECK_COMPOUND_ID_RANGE) ) {
+		GetDlgItem(IDC_EDIT_ID_LOWER)->SetWindowText(cstrIDLower);
+		GetDlgItem(IDC_EDIT_ID_UPPER)->SetWindowText(cstrIDUpper);
+	}
+}
 void LibParaSearchView::getSearchPara() {
 	CString cstrName, cstrCAS, cstrFormula;
 	CString cstrMassLower, cstrMassUpper;
@@ -85,20 +114,32 @@ int LibParaSearchView::checkSearchPara() {
 	}
 
 	// 检查 MASS 和 ID 的上下限 (空值不检查
-	if (_searchPara._massLower != "" && _searchPara._massUpper != "") {
+	if (_searchPara._massLower != "" || _searchPara._massUpper != "") {
 		int massLower = atoi( _searchPara._massLower.c_str() );
 		int massUpper = atoi( _searchPara._massUpper.c_str() );
-		if (massLower < 1) { return CHECK_MASS_LOWER_FAIL; }
-		if (massUpper > 9999) { return CHECK_MASS_UPPER_FAIL; }
+		if (massLower < 1) { return CHECK_MASS_RANGE_FAIL; }
+		if (massUpper > 9999) { return CHECK_MASS_RANGE_FAIL; }
+		if (massLower > massUpper) { return CHECK_MASS_RANGE_FAIL; }
+
+		_searchPara._massLower = SSTR(massLower);
+		_searchPara._massUpper = SSTR(massUpper);
 	}
 
-	if (_searchPara._idLower != "" && _searchPara._idUpper != "") {
+	if (_searchPara._idLower != "" || _searchPara._idUpper != "") {
 		int idLower = atoi( _searchPara._idLower.c_str() );
 		int idUpper = atoi( _searchPara._idUpper.c_str() );
-		if (idLower < 1) { return CHECK_ID_LOWER_FAIL; }
-		if (idUpper > _maxCompoundID) { return CHECK_ID_UPPER_FAIL; }
+		if (idLower < 1) { return CHECK_ID_RANGE_FAIL; }
+		if (idUpper > _maxCompoundID) { return CHECK_ID_RANGE_FAIL; }
+		if (idLower > idUpper) { return CHECK_ID_RANGE_FAIL; }
+
+		_searchPara._idLower = SSTR(idLower); 
+		_searchPara._idUpper = SSTR(idUpper);
 	}
-	  
+
+	// 检查小数,特殊符号等
+
+
+	setSearchPara();
 	return CHECK_PASS;
 }
 
@@ -171,12 +212,12 @@ void LibParaSearchView::OnBnClickedButtonLibParaSearch() {
 		::MessageBox(NULL, _T("至少输入一项检索参数条件"), _T("通知"), MB_OK);
 		return;
 	}
-	if (ret == CHECK_MASS_LOWER_FAIL || ret == CHECK_MASS_UPPER_FAIL) {
+	if (ret == CHECK_MASS_RANGE_FAIL) {
 		::MessageBox(NULL, _T("输入的分子量超出限定范围"), _T("通知"), MB_OK);
 		return;
 	}
 
-	if (ret == CHECK_ID_LOWER_FAIL || ret == CHECK_ID_UPPER_FAIL) {
+	if (ret == CHECK_ID_RANGE_FAIL) {
 		::MessageBox(NULL, _T("输入的化合物ID超出限定范围"), _T("通知"), MB_OK);
 		return;
 	}
