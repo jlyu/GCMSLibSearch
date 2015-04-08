@@ -43,7 +43,7 @@ VOID LibParaSearchResultView::initListCtrl() {
 	_compoundsList.SetTextColor(RGB(45,45,45));
 
 	_compoundsList.InsertColumn(0, _T("ID."), LVCFMT_LEFT,50);
-	_compoundsList.InsertColumn(1, _T("化合物名称"), LVCFMT_LEFT,110);
+	_compoundsList.InsertColumn(1, _T("化合物名称"), LVCFMT_LEFT,220);
 	_compoundsList.InsertColumn(2, _T("分子式"), LVCFMT_LEFT,110);
 	_compoundsList.InsertColumn(3, _T("分子量"), LVCFMT_LEFT,50);
 	_compoundsList.InsertColumn(4, _T("CAS号"), LVCFMT_LEFT,100); 

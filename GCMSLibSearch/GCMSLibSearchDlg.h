@@ -16,7 +16,7 @@ public:
 // 对话框数据
 	enum { IDD = IDD_GCMSLIBSEARCH_DIALOG };
 
-	protected:
+protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV 支持
 
 	void init();
@@ -38,7 +38,6 @@ protected:
 private:
 	CSuperChartCtrl _peakChart; 
 	CSuperChartCtrl _compareChart;
-
 	CPeakDrawView _peakDrawView;
 	
 

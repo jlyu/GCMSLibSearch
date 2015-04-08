@@ -14,7 +14,7 @@ CPeakDrawView::~CPeakDrawView(void)
 
 
 VOID CPeakDrawView::setChartCtrl(CSuperChartCtrl* upChartCtrl, CSuperChartCtrl* downChartCtrl) {
-	
+
 	if ( (upChartCtrl != NULL) && (upChartCtrl != _pPeakChart) ) {
 		_pPeakChart = upChartCtrl;
 	}

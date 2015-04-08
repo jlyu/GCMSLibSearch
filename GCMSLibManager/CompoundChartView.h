@@ -23,4 +23,5 @@ protected:
 
 private:
 	CSuperChartCtrl _compoundChart; 
+
 };
