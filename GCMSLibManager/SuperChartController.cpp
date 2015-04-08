@@ -14,7 +14,7 @@ SuperChartController::~SuperChartController(void)
 
 VOID SuperChartController::setChartCtrl(CSuperChartCtrl* pSuperChartCtrl) {
 
-	if ( (_pChart != NULL) && (_pChart != pSuperChartCtrl) ) {
+	if ( (NULL != pSuperChartCtrl) && (_pChart != pSuperChartCtrl) ) {
 		_pChart = pSuperChartCtrl;
 	}
 }

@@ -36,6 +36,8 @@ BOOL LibParaSearchResultView::OnInitDialog(){
 
 
 BEGIN_MESSAGE_MAP(LibParaSearchResultView, CDialogEx)
+	ON_NOTIFY(HDN_ITEMDBLCLICK, 0, &LibParaSearchResultView::OnHdnItemdblclickListSearchResult)
+	ON_NOTIFY(NM_DBLCLK, IDC_LIST_SEARCH_RESULT, &LibParaSearchResultView::OnNMDblclkListSearchResult)
 END_MESSAGE_MAP()
 
 VOID LibParaSearchResultView::initListCtrl() {
@@ -73,3 +75,40 @@ VOID LibParaSearchResultView::fillCompoundList() {
 	}
 }
 // LibParaSearchResultView 消息处理程序
+
+
+void LibParaSearchResultView::OnHdnItemdblclickListSearchResult(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	LPNMHEADER phdr = reinterpret_cast<LPNMHEADER>(pNMHDR);
+	
+	*pResult = 0;
+}
+
+
+void LibParaSearchResultView::OnNMDblclkListSearchResult(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
+	UpdateData(TRUE);
+
+	POSITION pos = _compoundsList.GetFirstSelectedItemPosition();
+	if (pos) {
+		//pos = _compoundList.GetSelectedItemPosition();
+		int nItem = _compoundsList.GetSelectionMark();
+		CString strCompoundID = _compoundsList.GetItemText(nItem, 0);
+		int compoundID = _ttoi(strCompoundID);
+
+		// 获得 _compounds 中对应 iD 的下标
+		for (int i = 0; i != _compounds.size(); i++) {
+			if (_compounds[i]._compoundID == compoundID) {
+
+				// 显示丰图
+				CompoundChartView compoundChartView(_compounds[i]); //化合物丰图
+				compoundChartView.DoModal();
+
+				break;
+			}
+		}
+	}
+	UpdateData(FALSE);
+	*pResult = 0;
+}

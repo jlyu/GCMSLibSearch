@@ -1,6 +1,8 @@
 #pragma once
 
 #include "GCMSLibManager.h"
+#include "SuperChartController.h"
+#include "Compound.h"
 
 // CompoundChartView 对话框
 
@@ -9,7 +11,7 @@ class CompoundChartView : public CDialogEx
 	DECLARE_DYNAMIC(CompoundChartView)
 
 public:
-	CompoundChartView(CWnd* pParent = NULL);   // 标准构造函数
+	CompoundChartView(const Compound& compound, CWnd* pParent = NULL);
 	virtual ~CompoundChartView();
 
 // 对话框数据
@@ -22,6 +24,8 @@ protected:
 	DECLARE_MESSAGE_MAP()
 
 private:
+	Compound _compound;
 	CSuperChartCtrl _compoundChart; 
-
+	SuperChartController _superChartController;
+	
 };

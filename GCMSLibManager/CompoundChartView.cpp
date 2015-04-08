@@ -10,10 +10,10 @@
 
 IMPLEMENT_DYNAMIC(CompoundChartView, CDialogEx)
 
-CompoundChartView::CompoundChartView(CWnd* pParent /*=NULL*/)
-	: CDialogEx(CompoundChartView::IDD, pParent)
-{
 
+CompoundChartView::CompoundChartView(const Compound& compound, CWnd* pParent /*=NULL*/)
+	: CDialogEx(CompoundChartView::IDD, pParent) {
+	_compound = compound;
 }
 
 CompoundChartView::~CompoundChartView()
@@ -26,15 +26,16 @@ void CompoundChartView::init() {
 	ScreenToClient(rcCompoundChart);
 
 	_compoundChart.Create(this, rcCompoundChart, 0, WS_CHILD|WS_VISIBLE);
-	
+	_superChartController.setChartCtrl(&_compoundChart);
 
-	//_peakDrawView.setChartCtrl(&_peakChart, &_compareChart);
+	// …Ë÷√∑·Õº
+	const CString cstrPeakData = CString(_compound._peakData.c_str());
+	_superChartController.drawCompoundChart(cstrPeakData);
 }
 
-BOOL CompoundChartView::OnInitDialog()
-{
+BOOL CompoundChartView::OnInitDialog() {
 	CDialogEx::OnInitDialog();
-
+	init();
 	return TRUE;
 
 }

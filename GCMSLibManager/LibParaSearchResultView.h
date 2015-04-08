@@ -1,8 +1,10 @@
 #pragma once
 
 #include "GCMSLibManager.h"
-#include <vector>
 #include "Compound.h"
+#include "CompoundChartView.h"
+
+#include <vector>
 // LibParaSearchResultView 对话框
 
 class LibParaSearchResultView : public CDialogEx
@@ -20,13 +22,16 @@ public:
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 支持
-	BOOL LibParaSearchResultView::OnInitDialog();
+	
 	DECLARE_MESSAGE_MAP()
+	afx_msg void OnHdnItemdblclickListSearchResult(NMHDR *pNMHDR, LRESULT *pResult);
 
+	BOOL LibParaSearchResultView::OnInitDialog();
 	VOID LibParaSearchResultView::initListCtrl();
 	VOID LibParaSearchResultView::fillCompoundList();
 
 public:
 	CListCtrl _compoundsList;
 	std::vector<Compound> _compounds;
+	afx_msg void OnNMDblclkListSearchResult(NMHDR *pNMHDR, LRESULT *pResult);
 };
