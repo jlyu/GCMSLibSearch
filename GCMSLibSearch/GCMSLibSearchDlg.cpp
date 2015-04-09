@@ -231,17 +231,19 @@ void CGCMSLibSearchDlg::OnBnClickedCallDLL() {
 
 	CString str(libConfig._dbPath1st.c_str());
 
-	GCMSLibSearchStrategy(this, libConfig);
+	GCMSLibSearchStrategy(libConfig, this);
 }
 
 
 void CGCMSLibSearchDlg::OnBnClickedLibSetting() {
 	
-	GCMSLibSetting(this);
+	const CString libPathName = CString(_T("E:\\GCMSLibSearch\\GCMSLibSearch\\nist.db"));
+	GCMSLibSetting(libPathName, this);
 }
 
 
 void CGCMSLibSearchDlg::OnBnClickedParaSearch() {
 	
-	GCMSLibParaSearch(this);
+	const CString libPathName = CString(_T("E:\\GCMSLibSearch\\GCMSLibSearch\\nist.db"));
+	GCMSLibParaSearch(libPathName, this);
 }

@@ -74,26 +74,6 @@ public:
 	int _matchDegree; //匹配度
 };
 
-class LibConfig {
-public:
-	LibConfig():_dbPath1st(""), _dbPath2nd(""), _dbPath3rd(""), 
-		_minMass1st(0), _minMass2nd(0), _minMass3rd(0), 
-		_matchLimitNumber(20), 
-		_isUnique(false) { }
-	~LibConfig() { }
-
-	std::string _dbPath1st; 
-	std::string _dbPath2nd; 
-	std::string _dbPath3rd; 
-	int _minMass1st;
-	int _minMass2nd;
-	int _minMass3rd;
-	int _upperMass;
-	int _lowerMass;
-	int _matchLimitNumber;
-	bool _isUnique;
-};
-
 class SearchPara {
 public:
 	SearchPara():_name(""), _cas(""), _formula(""), 
@@ -138,3 +118,23 @@ public:
 	std::string _idLower;
 	std::string _idUpper;
 };
+
+// - 导出涉及的自定义类型
+struct LibConfig {
+	LibConfig():_dbPath1st(""), _dbPath2nd(""), _dbPath3rd(""), 
+		_minMass1st(0), _minMass2nd(0), _minMass3rd(0), 
+		_matchLimitNumber(20), 
+		_isUnique(false) { }
+
+	std::string _dbPath1st; 
+	std::string _dbPath2nd; 
+	std::string _dbPath3rd; 
+	int _minMass1st;
+	int _minMass2nd;
+	int _minMass3rd;
+	int _upperMass;
+	int _lowerMass;
+	int _matchLimitNumber;
+	bool _isUnique;
+};
+

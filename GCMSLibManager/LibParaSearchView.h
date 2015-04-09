@@ -20,7 +20,7 @@ class LibParaSearchView : public CDialogEx
 	DECLARE_DYNAMIC(LibParaSearchView)
 
 public:
-	LibParaSearchView(CWnd* pParent = NULL);   // 标准构造函数
+	LibParaSearchView(const CString defaultLibPathName, CWnd* pParent = NULL);    
 	virtual ~LibParaSearchView();
 
 // 对话框数据

@@ -16,7 +16,7 @@ class LibSettingView : public CDialogEx
 	DECLARE_DYNAMIC(LibSettingView)
 
 public:
-	LibSettingView(CWnd* pParent = NULL);   // 标准构造函数
+	LibSettingView(const CString defaultLibPathName, CWnd* pParent = NULL);   // 标准构造函数
 	virtual ~LibSettingView();
 
 // 对话框数据

@@ -38,7 +38,7 @@
 #include <afxcontrolbars.h>
 
 
-#include "SuperChartLib.h"
+//#include "SuperChartLib.h"
 
 //#if defined(DEBUG) || defined(_DEBUG)
 //#pragma comment(lib, "SuperChartCtrl_D.lib")

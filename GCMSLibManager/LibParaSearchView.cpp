@@ -13,10 +13,10 @@
 
 IMPLEMENT_DYNAMIC(LibParaSearchView, CDialogEx)
 
-LibParaSearchView::LibParaSearchView(CWnd* pParent /*=NULL*/)
+LibParaSearchView::LibParaSearchView(const CString defaultLibPathName, CWnd* pParent /*=NULL*/)
 	: CDialogEx(LibParaSearchView::IDD, pParent)
 {
-	_defaultDBPath = CString(_T("E:\\GCMSLibSearch\\GCMSLibSearch\\nist.db")); // TODO: 用MD5绑定文件
+	_defaultDBPath = defaultLibPathName; // CString(_T("E:\\GCMSLibSearch\\GCMSLibSearch\\nist.db")); // TODO: 用MD5绑定文件
 	_currentDBPath = _defaultDBPath;
 }
 LibParaSearchView::~LibParaSearchView()
