@@ -19,7 +19,7 @@ public:
 	PeakPoint():_compoundID(0), _x(0), _y(0) { }
 	PeakPoint(int id):_compoundID(id), _x(0), _y(0) { }
 
-    int _compoundID;
+	int _compoundID;
 	int _x;
 	int _y;
 };

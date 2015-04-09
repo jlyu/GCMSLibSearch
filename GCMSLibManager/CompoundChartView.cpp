@@ -31,6 +31,12 @@ void CompoundChartView::init() {
 	// 设置丰图
 	const CString cstrPeakData = CString(_compound._peakData.c_str());
 	_superChartController.drawCompoundChart(cstrPeakData);
+
+	// 设置标题
+	CString strID;
+	strID.Format(_T("#%d : "), _compound._compoundID);
+	CString strTitle = strID + CString(_compound._compoundName.c_str());
+	SetWindowText(strTitle);
 }
 
 BOOL CompoundChartView::OnInitDialog() {

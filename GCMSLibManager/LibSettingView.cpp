@@ -154,6 +154,8 @@ void LibSettingView::OnBnClickedChooseDB() {
 		strPath = fileDlg.GetPathName();
 		GetDlgItem(IDC_EDIT_DB_PATH)->SetWindowText(strPath);
 		_currentDBPath = strPath;
+
+		clearCompoundsOnEditCtrls();
 	} else { 
 
 		GetDlgItem(IDC_EDIT_DB_PATH)->SetWindowText(_currentDBPath);
@@ -189,6 +191,8 @@ void LibSettingView::OnBnClickedCreateDB() {
 		GetDlgItem(IDC_EDIT_DB_PATH)->SetWindowText(_T(""));
 		_currentDBPath = _T("");
 	}
+
+	clearCompoundsOnEditCtrls();
 }
 // - »¯ºÏÎï
 void LibSettingView::OnBnClickedQueryCompound() {

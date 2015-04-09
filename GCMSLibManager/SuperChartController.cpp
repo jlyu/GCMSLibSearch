@@ -19,25 +19,23 @@ VOID SuperChartController::setChartCtrl(CSuperChartCtrl* pSuperChartCtrl) {
 	}
 }
 
-void SuperChartController::parsePeakData(const CString &strPeakData, std::vector<std::pair<int, int> > &peakData) {
+void SuperChartController::parsePeakData(const CString &strPeakData, std::vector<CPoint> &peakPoints) {
+	// 保证 xn > .. > x2 > x1 不做检查
 
-	if (!peakData.empty()) { peakData.clear(); }
+	if (!peakPoints.empty()) { peakPoints.clear(); }
 
 	int index = 0;
 	while (true) {
 
 		CString strXY;
 		AfxExtractSubString(strXY, (LPCTSTR)strPeakData, index, ';');
-		if (strXY == _T("")) {
-			break;
-		}
+		if (strXY == _T("")) { break; }
 
 		CString strX, strY;
 		AfxExtractSubString(strX, (LPCTSTR)strXY, 0, ' ');
 		AfxExtractSubString(strY, (LPCTSTR)strXY, 1, ' ');
 
-		peakData.push_back(std::make_pair(_ttoi(strX), _ttoi(strY)));
-
+		peakPoints.push_back(CPoint(_ttoi(strX), _ttoi(strY)));
 		index++;
 	}
 }
@@ -45,8 +43,8 @@ void SuperChartController::parsePeakData(const CString &strPeakData, std::vector
 VOID SuperChartController::drawCompoundChart(const CString &strPeakData) {
 	// 以传入的形如_T("12 108;13 229;14 999;15 22;26 18;27 58;28 178;29 23;40 18;41 108;42 431;43 8;") 字符串数据显示
 
-	std::vector<std::pair<int, int> > peakData;
-	parsePeakData(strPeakData, peakData);
+	std::vector<CPoint> peakPoints;
+	parsePeakData(strPeakData, peakPoints);
 
 	_pChart->EnableRefresh(false);
 
@@ -56,20 +54,20 @@ VOID SuperChartController::drawCompoundChart(const CString &strPeakData) {
 	double max_y = 0.0;
 
 	// 绘制丰图
-	for (int i=0; i != peakData.size(); i++) {
+	for (int i=0; i != peakPoints.size(); i++) {
 
 		CChartLineSerie* line;  
 		line = _pChart->CreateLineSerie();
 		line->SetColor(RGB(210, 0, 0));
 		line->m_vPoints.InitPoints(4);
 
-		double dx[] = { (double)peakData[i].first, (double)peakData[i].first };
-		double dy[] = {  0.0f, (double)peakData[i].second };
+		double dx[] = { (double)peakPoints[i].x, (double)peakPoints[i].y };
+		double dy[] = {  0.0f, (double)peakPoints[i].y };
 
 		line->m_vPoints.AddPoints(dx, dy, 2);
 
-		if (peakData[i].first > max_x) { max_x = peakData[i].first; }
-		if (peakData[i].second > max_y) { max_y = peakData[i].second; }
+		if (peakPoints[i].x > max_x) { max_x = peakPoints[i].x; }
+		if (peakPoints[i].y > max_y) { max_y = peakPoints[i].y; }
 	}
 
 	CChartAxis* pAxisSelect;
@@ -88,4 +86,41 @@ VOID SuperChartController::drawCompoundChart(const CString &strPeakData) {
 	pAxisSelect->SetVisible(true);
 	_pChart->EnableRefresh(true);
 	_pChart->RefreshCtrl();	
+
+	//
+	drawCompoundString(peakPoints);
+}
+
+VOID SuperChartController::drawCompoundString(std::vector<CPoint> &peakPoints) {
+	// 拿到最大X值后，分割成10个区间，每个区间选出最大的Y值加入，但是Y存在下限就是MaxY的10%
+	const int peakPointsSize = peakPoints.size();
+	int maxX = peakPoints[peakPointsSize - 1].x;
+	int maxY = 0;
+	for (int i = 0; i != peakPointsSize; i++) {
+		if (peakPoints[i].y > maxY) {
+			maxY = peakPoints[i].y;
+		}
+	}
+
+	int interval = maxX / 10;
+	int intervalY = 0;
+	int intervalIndex = 0;
+	for (int i = 0; i < 10; i++) {
+		for (int j = 0; j != interval; j++) {
+			if (peakPoints[i*interval+j].y > intervalY) {
+				intervalY = peakPoints[i*interval+j].y;
+				intervalIndex = i*interval+j;
+			}
+
+			if (intervalY > (maxY*0.1)) {
+				CString strMark;
+				strMark.Format(_T("%d"), peakPoints[intervalIndex].x);
+				_pChart->AddChartString(peakPoints[intervalIndex].x * 0.05, 
+										peakPoints[intervalIndex].y * 0.05, 
+										_T("20"));
+			}
+		}
+	}
+	_pChart->DisplayAllChartStrings();
+
 }
