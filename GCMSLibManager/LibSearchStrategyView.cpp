@@ -38,9 +38,9 @@ void LibSearchStrategyView::initCtrls() {
 	cstrLowerMass.Format(_T("%d"), _libConfig._lowerMass);
 	cstrMatchLimit.Format(_T("%d"), _libConfig._matchLimitNumber);
 
-	GetDlgItem(IDC_EDIT_DB_PATH1)->SetWindowText(CString(_libConfig._dbPath1st.c_str()));
-	GetDlgItem(IDC_EDIT_DB_PATH2)->SetWindowText(CString(_libConfig._dbPath2nd.c_str()));
-	GetDlgItem(IDC_EDIT_DB_PATH3)->SetWindowText(CString(_libConfig._dbPath3rd.c_str()));
+	GetDlgItem(IDC_EDIT_DB_PATH1)->SetWindowText(CString(_libConfig._dbPath1st));
+	GetDlgItem(IDC_EDIT_DB_PATH2)->SetWindowText(CString(_libConfig._dbPath2nd));
+	GetDlgItem(IDC_EDIT_DB_PATH3)->SetWindowText(CString(_libConfig._dbPath3rd));
 	GetDlgItem(IDC_EDIT_MIN_MASS1)->SetWindowText(cstrMinMass1);
 	GetDlgItem(IDC_EDIT_MIN_MASS2)->SetWindowText(cstrMinMass2);
 	GetDlgItem(IDC_EDIT_MIN_MASS3)->SetWindowText(cstrMinMass3);

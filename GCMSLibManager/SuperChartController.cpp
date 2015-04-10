@@ -48,6 +48,9 @@ VOID SuperChartController::drawCompoundChart(const CString &strPeakData) {
 
 	_pChart->EnableRefresh(false);
 
+	//
+	drawCompoundString(peakPoints);
+
 	double min_x = 0.0;
 	double max_x = 0.0;
 	double min_y = 0.0;
@@ -61,7 +64,7 @@ VOID SuperChartController::drawCompoundChart(const CString &strPeakData) {
 		line->SetColor(RGB(210, 0, 0));
 		line->m_vPoints.InitPoints(4);
 
-		double dx[] = { (double)peakPoints[i].x, (double)peakPoints[i].y };
+		double dx[] = { (double)peakPoints[i].x, (double)peakPoints[i].x };
 		double dy[] = {  0.0f, (double)peakPoints[i].y };
 
 		line->m_vPoints.AddPoints(dx, dy, 2);
@@ -87,8 +90,7 @@ VOID SuperChartController::drawCompoundChart(const CString &strPeakData) {
 	_pChart->EnableRefresh(true);
 	_pChart->RefreshCtrl();	
 
-	//
-	drawCompoundString(peakPoints);
+	
 }
 
 VOID SuperChartController::drawCompoundString(std::vector<CPoint> &peakPoints) {
@@ -102,25 +104,37 @@ VOID SuperChartController::drawCompoundString(std::vector<CPoint> &peakPoints) {
 		}
 	}
 
-	int interval = maxX / 10;
-	int intervalY = 0;
+	int interval = maxX / 20;
 	int intervalIndex = 0;
-	for (int i = 0; i < 10; i++) {
-		for (int j = 0; j != interval; j++) {
-			if (peakPoints[i*interval+j].y > intervalY) {
-				intervalY = peakPoints[i*interval+j].y;
-				intervalIndex = i*interval+j;
+	int intervalX = 0;
+	int intervalY = 0;
+	for (int i = 0; i != peakPointsSize; i++) {
+
+		int xLower = interval * intervalIndex;
+		int xUpper = interval + xLower;
+
+		int x = peakPoints[i].x;
+		int y = peakPoints[i].y;
+
+		if (xLower <= x && x <= xUpper) {
+			if (y > intervalY) { intervalY = y; intervalX = x; }
+		}
+
+		if (x > xUpper) {
+
+			if (intervalY > (maxY * 0.1)) {
+				CString strMark;
+				strMark.Format(_T("%d"), intervalX);
+				_pChart->AddChartString(intervalX * 0.9, intervalY * 1.15, strMark);
 			}
 
-			if (intervalY > (maxY*0.1)) {
-				CString strMark;
-				strMark.Format(_T("%d"), peakPoints[intervalIndex].x);
-				_pChart->AddChartString(peakPoints[intervalIndex].x * 0.05, 
-										peakPoints[intervalIndex].y * 0.05, 
-										_T("20"));
-			}
+
+			intervalIndex += 1; 
+			intervalY = 0;
+
 		}
 	}
+
 	_pChart->DisplayAllChartStrings();
 
 }

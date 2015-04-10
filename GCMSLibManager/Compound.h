@@ -119,16 +119,19 @@ public:
 	std::string _idUpper;
 };
 
+
+
+
 // - 导出涉及的自定义类型
 struct LibConfig {
-	LibConfig():_dbPath1st(""), _dbPath2nd(""), _dbPath3rd(""), 
+	LibConfig(): 
 		_minMass1st(0), _minMass2nd(0), _minMass3rd(0), 
 		_matchLimitNumber(20), 
 		_isUnique(false) { }
 
-	std::string _dbPath1st; 
-	std::string _dbPath2nd; 
-	std::string _dbPath3rd; 
+	CString _dbPath1st; 
+	CString _dbPath2nd; 
+	CString _dbPath3rd; 
 	int _minMass1st;
 	int _minMass2nd;
 	int _minMass3rd;

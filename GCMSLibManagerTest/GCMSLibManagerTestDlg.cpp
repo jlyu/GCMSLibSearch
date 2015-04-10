@@ -110,9 +110,6 @@ void CGCMSLibManagerTestDlg::OnBnClickedLibSearchStrategy()
 	libConfig._matchLimitNumber = 20;
 	libConfig._isUnique = true;
 
-
-	CString str(libConfig._dbPath1st.c_str());
-
 	GCMSLibSearchStrategy(libConfig, this);
 }
 

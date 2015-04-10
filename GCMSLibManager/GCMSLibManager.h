@@ -7,6 +7,7 @@
 
 #include "Resource.h"		
 #include "Compound.h"
+#include <vector>
 
 
 #define LIBMANAGERDLL_EXPORTS
@@ -18,10 +19,17 @@
 
 // - 导出 DLL - //
 
+// 【谱库检索算法】
+// 输入：检索策略配置参数 libConfig
+//		 单个样品化合物
+// 输出：谱库化合物组
+LIBMANAGERDLL_API VOID GCMSLibSearch(const LibConfig& libConfig, Compound testCompound, std::vector<Compound> &libCompounds);
+
 // 【谱库检索策略 对话框界面】
 // 输入：配置参数 libConfig
 // 输出：修改后的配置参数 Ref
-LIBMANAGERDLL_API VOID GCMSLibSearchStrategy(LibConfig& libConfig, CWnd* pParent = NULL);
+// 返回：策略是否改变
+LIBMANAGERDLL_API bool GCMSLibSearchStrategy(LibConfig& libConfig, CWnd* pParent = NULL);
 
 // 【谱库的增删改 对话框界面】
 // 输入： 1.  默认数据库路径 defaultDB
@@ -34,7 +42,7 @@ LIBMANAGERDLL_API VOID GCMSLibParaSearch(const CString defaultLibPathName, CWnd*
 
 
 
-
+// 调用编译前可删
 class CGCMSLibManagerApp : public CWinApp {
 public:
 	CGCMSLibManagerApp() { }
