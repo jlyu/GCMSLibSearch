@@ -1,7 +1,13 @@
 #pragma once
 #include "StdAfx.h" 
-#include <iostream>
 #include <string>
+#include <vector>
+#include <iostream>
+#include <sstream>
+
+#define INT2STR( x ) dynamic_cast < std::ostringstream & >( \
+	( std::ostringstream() << std::dec << x ) ).str()
+
 
 class Peak {
 public:
@@ -37,42 +43,7 @@ public:
 	void printY() { std::cout << _peakPoint._y << std::endl; }
 };
 
-class Compound {
 
-public:
-	Compound(void):
-			_compoundID(0),
-			_compoundName(""),
-			_formula(""),
-			_massWeight(0),
-			_casNo(""),
-			_peakCount(0),
-			_maxX(0),
-			_peakData(""),
-			_matchDegree(-1) { }
-	~Compound(void) { }
-
-	void print() {
-		std::cout << "CompoundID:" << _compoundID << std::endl;
-		std::cout << "Name:" << _compoundName << std::endl;
-		std::cout << "Formula:" << _formula << std::endl;
-		std::cout << "MassWeight:" << _massWeight << std::endl;
-		std::cout << "CasNo:" << _casNo << std::endl;
-		std::cout << "PeakCount:" << _peakCount << std::endl;
-	}
-	void printBrief() { std::cout << _compoundID << "\t" << _formula << std::endl; }
-
-public:
-	int _compoundID;
-	std::string _compoundName;
-	std::string _formula;
-	int _massWeight;
-	std::string _casNo;
-	int _peakCount;
-	int _maxX; //最大质量数
-	std::string _peakData;
-	int _matchDegree; //匹配度
-};
 
 class SearchPara {
 public:
@@ -110,6 +81,7 @@ public:
 		
 	}
 
+public:
 	std::string _name;
 	std::string _cas;
 	std::string _formula;
@@ -124,10 +96,8 @@ public:
 
 // - 导出涉及的自定义类型
 struct LibConfig {
-	LibConfig(): 
-		_minMass1st(0), _minMass2nd(0), _minMass3rd(0), 
-		_matchLimitNumber(20), 
-		_isUnique(false) { }
+	LibConfig(): _minMass1st(0), _minMass2nd(0), _minMass3rd(0), 
+		_matchLimitNumber(20), _isUnique(false) { }
 
 	CString _dbPath1st; 
 	CString _dbPath2nd; 
@@ -141,3 +111,52 @@ struct LibConfig {
 	bool _isUnique;
 };
 
+
+class Compound {
+
+public:
+	Compound(void):
+		_compoundID(0),_compoundName(""),_formula(""),_massWeight(0),
+		_casNo(""),_peakCount(0),_maxX(0),_peakData(""),_matchDegree(-1) { }
+	
+	// 字符串数据转数组
+	void str2ints() {
+		std::string::size_type i = 0;
+		std::string::size_type j = _peakData.find(';');
+
+		while ( j != std::string::npos) {
+
+			std::string strXY = _peakData.substr(i, j-i);
+			std::string::size_type w = strXY.find(' ');
+			std::string strX = strXY.substr(0, w);
+			std::string strY = strXY.substr(w+1, strXY.length());
+
+			_peakDatas.push_back(CPoint(atoi(strX.c_str()), atoi(strY.c_str())));
+
+			i = ++j;
+			j = _peakData.find(';', j);
+		}
+	}
+
+	// 数组数据转字符串
+	void ints2str() {
+		_peakData = "";
+		const int peakDatasSize = _peakDatas.size();
+		for (int i = 0; i != peakDatasSize; i++) {
+			_peakData += INT2STR(_peakDatas[i].x) + " " + INT2STR(_peakDatas[i].y) + ";";
+		}
+	}
+
+public:
+	int _compoundID;
+	std::string _compoundName;
+	std::string _formula;
+	int _massWeight;
+	std::string _casNo;
+	int _peakCount;
+	int _maxX; //最大质量数
+	std::string _peakData;
+	int _matchDegree; //匹配度
+
+	std::vector<CPoint> _peakDatas; //  _peakData 字符串的数组表示
+};

@@ -104,7 +104,21 @@ VOID SuperChartController::drawCompoundString(std::vector<CPoint> &peakPoints) {
 		}
 	}
 
-	int interval = maxX / 20;
+	const int setoffX = maxX / 100;
+	const int setoffY = maxY / 200;
+
+	int groupSize = 1;
+	if (peakPointsSize <= 5) {
+		groupSize = maxX;
+	} else if (peakPointsSize >5 && peakPointsSize <= 100) {
+		groupSize = peakPointsSize / 5;
+	} else if (peakPointsSize >100 && peakPointsSize <= 500) {
+		groupSize = peakPointsSize / 20;
+	} else {
+		groupSize = peakPointsSize / 50;
+	}
+	
+	int interval = maxX / groupSize;
 	int intervalIndex = 0;
 	int intervalX = 0;
 	int intervalY = 0;
@@ -120,18 +134,16 @@ VOID SuperChartController::drawCompoundString(std::vector<CPoint> &peakPoints) {
 			if (y > intervalY) { intervalY = y; intervalX = x; }
 		}
 
-		if (x > xUpper) {
+		if (x >= xUpper || i == peakPointsSize - 1) {
 
-			if (intervalY > (maxY * 0.1)) {
+			//if (intervalY > (maxY * 0.05)) {
 				CString strMark;
 				strMark.Format(_T("%d"), intervalX);
-				_pChart->AddChartString(intervalX * 0.9, intervalY * 1.15, strMark);
-			}
-
+				_pChart->AddChartString(intervalX - setoffX, intervalY + setoffY, strMark);
+			//}
 
 			intervalIndex += 1; 
 			intervalY = 0;
-
 		}
 	}
 
