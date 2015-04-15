@@ -23,7 +23,7 @@
 // 输入：检索策略配置参数 libConfig
 //		 单个样品化合物
 // 输出：谱库化合物组
-LIBMANAGERDLL_API VOID GCMSLibSearch(const LibConfig& libConfig, Compound testCompound, std::vector<Compound> &libCompounds);
+LIBMANAGERDLL_API VOID GCMSLibSearch(const LibConfig& libConfig, Compound &testCompound, std::vector<Compound> &libCompounds);
 
 // 【谱库检索策略 对话框界面】
 // 输入：配置参数 libConfig

@@ -9,7 +9,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GCMSLibSearchTest", "GCMSLi
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GCMSLibManagerDLL", "GCMSLibManager\GCMSLibManager.vcxproj", "{CF82F945-ABCA-4CA8-B1B7-F8B227621F5E}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GCMSLibManagerTest", "GCMSLibManagerTest\GCMSLibManagerTest.vcxproj", "{00905E17-88B2-480C-B18D-D7EBB004FD8A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GCMSLibManagerTest", "GCMSLibManagerTest\GCMSLibManagerTest.vcxproj", "{F6090C3C-947A-4D93-9138-42429137178E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,10 +33,10 @@ Global
 		{CF82F945-ABCA-4CA8-B1B7-F8B227621F5E}.Debug|Win32.Build.0 = Debug|Win32
 		{CF82F945-ABCA-4CA8-B1B7-F8B227621F5E}.Release|Win32.ActiveCfg = Release|Win32
 		{CF82F945-ABCA-4CA8-B1B7-F8B227621F5E}.Release|Win32.Build.0 = Release|Win32
-		{00905E17-88B2-480C-B18D-D7EBB004FD8A}.Debug|Win32.ActiveCfg = Debug|Win32
-		{00905E17-88B2-480C-B18D-D7EBB004FD8A}.Debug|Win32.Build.0 = Debug|Win32
-		{00905E17-88B2-480C-B18D-D7EBB004FD8A}.Release|Win32.ActiveCfg = Release|Win32
-		{00905E17-88B2-480C-B18D-D7EBB004FD8A}.Release|Win32.Build.0 = Release|Win32
+		{F6090C3C-947A-4D93-9138-42429137178E}.Debug|Win32.ActiveCfg = Debug|Win32
+		{F6090C3C-947A-4D93-9138-42429137178E}.Debug|Win32.Build.0 = Debug|Win32
+		{F6090C3C-947A-4D93-9138-42429137178E}.Release|Win32.ActiveCfg = Release|Win32
+		{F6090C3C-947A-4D93-9138-42429137178E}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

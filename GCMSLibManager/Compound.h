@@ -97,7 +97,7 @@ public:
 // - 导出涉及的自定义类型
 struct LibConfig {
 	LibConfig(): _minMass1st(0), _minMass2nd(0), _minMass3rd(0), 
-		_matchLimitNumber(20), _isUnique(false) { }
+		_lowerMass(1), _upperMass(9999), _matchLimitNumber(20), _isUnique(false) { }
 
 	CString _dbPath1st; 
 	CString _dbPath2nd; 

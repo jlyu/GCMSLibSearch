@@ -13,7 +13,7 @@
 #endif
 
 // - DLL µ¼³ö
-LIBMANAGERDLL_API VOID GCMSLibSearch(const LibConfig& libConfig, Compound testCompound, std::vector<Compound> &libCompounds) {
+LIBMANAGERDLL_API VOID GCMSLibSearch(const LibConfig& libConfig, Compound &testCompound, std::vector<Compound> &libCompounds) {
 	
 	if (!libCompounds.empty()) { libCompounds.clear(); }
 	
@@ -24,7 +24,8 @@ LIBMANAGERDLL_API VOID GCMSLibSearch(const LibConfig& libConfig, Compound testCo
 
 		const std::string strLibPathName = CT2A(libPathName[t]);
 		SqliteController sqliteController(strLibPathName);
-		sqliteController.libSearch(testCompound, libCompounds);
+		testCompound = sqliteController.getCompound(100); // del
+		sqliteController.libSearch(libConfig, testCompound, libCompounds);
 
 		const int libCompoundsSize = libCompounds.size();
 		for (int i = 0; i != libCompoundsSize; i++) {

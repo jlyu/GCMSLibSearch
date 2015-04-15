@@ -7,6 +7,9 @@
 #include "GCMSLibManagerTestDlg.h"
 #include "afxdialogex.h"
 
+#include "..\\GCMSLibManager\GCMSLibManager.h"
+#include "..\\GCMSLibManager\Compound.h"
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -31,9 +34,10 @@ void CGCMSLibManagerTestDlg::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CGCMSLibManagerTestDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
-	ON_BN_CLICKED(IDC_BUTTON1, &CGCMSLibManagerTestDlg::OnBnClickedLibSearchStrategy)
-	ON_BN_CLICKED(IDC_BUTTON2, &CGCMSLibManagerTestDlg::OnBnClickedLibSetting)
-	ON_BN_CLICKED(IDC_BUTTON3, &CGCMSLibManagerTestDlg::OnBnClickedLibParaSearch)
+	ON_BN_CLICKED(IDC_BUTTON_LIB_SEARCH, &CGCMSLibManagerTestDlg::OnBnClickedButtonLibSearch)
+	ON_BN_CLICKED(IDC_BUTTON_LIB_STRATEGY, &CGCMSLibManagerTestDlg::OnBnClickedButtonLibStrategy)
+	ON_BN_CLICKED(IDC_BUTTON_LIB_SETTING, &CGCMSLibManagerTestDlg::OnBnClickedButtonLibSetting)
+	ON_BN_CLICKED(IDC_BUTTON_PARA_SEARCH, &CGCMSLibManagerTestDlg::OnBnClickedButtonParaSearch)
 END_MESSAGE_MAP()
 
 
@@ -90,14 +94,31 @@ HCURSOR CGCMSLibManagerTestDlg::OnQueryDragIcon()
 }
 
 
-// - Test
+
+void CGCMSLibManagerTestDlg::OnBnClickedButtonLibSearch() {
+	LibConfig libConfig;
+	libConfig._dbPath1st = "E:\\GCMSLibSearch\\db\\nist.db";
+	GCMSLibSearchStrategy(libConfig, this);
+
+	Compound testCompound;
+	testCompound._compoundID = 100;
+	testCompound._compoundName = "2-Bromoethyl isothiocyanate";
+	testCompound._formula = "C3H4BrNS";
+	testCompound._massWeight = 165;
+	testCompound._casNo = "1483-41-6";
+	testCompound._peakCount = 66;
+	testCompound._peakData = "12 11;13 11;15 24;24 6;25 36;26 267;27 999;28 98;29 8;32 9;\
+							 33 11;34 10;37 5;38 28;39 31;40 59;41 13;42 16;43 5;44 102;45 120;46 24;47 6;50 6;51 39;\
+							 52 39;53 5;54 7;56 15;57 56;58 224;59 242;60 287;61 20;62 13;70 47;72 541;73 21;74 22;79 70;\
+							 80 22;81 67;82 28;83 13;84 50;85 49;86 76;87 5;88 4;91 9;92 7;93 49;94 9;95 32;104 4;\
+							 105 13;107 648;109 621;110 16;113 4;165 509;166 21;167 486;168 21;169 22;170 0;";
+
+	std::vector<Compound> libCompounds;
+	GCMSLibSearch(libConfig, testCompound, libCompounds);
+}
 
 
-#include "..\\GCMSLibManager\GCMSLibManager.h"
-#include "..\\GCMSLibManager\Compound.h"
-
-void CGCMSLibManagerTestDlg::OnBnClickedLibSearchStrategy()
-{
+void CGCMSLibManagerTestDlg::OnBnClickedButtonLibStrategy() {
 	LibConfig libConfig;
 	libConfig._dbPath1st = "E:\\GCMSLibSearch\\GCMSLibSearch\\nist.db";
 	libConfig._dbPath2nd = "fakfklajsfklaj";
@@ -114,15 +135,13 @@ void CGCMSLibManagerTestDlg::OnBnClickedLibSearchStrategy()
 }
 
 
-void CGCMSLibManagerTestDlg::OnBnClickedLibSetting()
-{
+void CGCMSLibManagerTestDlg::OnBnClickedButtonLibSetting() {
 	const CString libPathName = CString(_T("E:\\GCMSLibSearch\\GCMSLibSearch\\nist.db"));
 	GCMSLibSetting(libPathName, this);
 }
 
 
-void CGCMSLibManagerTestDlg::OnBnClickedLibParaSearch()
-{
+void CGCMSLibManagerTestDlg::OnBnClickedButtonParaSearch() {
 	const CString libPathName = CString(_T("E:\\GCMSLibSearch\\GCMSLibSearch\\nist.db"));
 	GCMSLibParaSearch(libPathName, this);
 }

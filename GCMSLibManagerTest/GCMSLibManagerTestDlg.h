@@ -27,9 +27,10 @@ protected:
 	virtual BOOL OnInitDialog();
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
+	afx_msg void OnBnClickedButtonLibSearch();
+	afx_msg void OnBnClickedButtonLibStrategy();
+	afx_msg void OnBnClickedButtonLibSetting();
+	afx_msg void OnBnClickedButtonParaSearch();
+
 	DECLARE_MESSAGE_MAP()
-public:
-	afx_msg void OnBnClickedLibSearchStrategy();
-	afx_msg void OnBnClickedLibSetting();
-	afx_msg void OnBnClickedLibParaSearch();
 };

@@ -91,7 +91,10 @@ bool SqliteController::checkConnectionError() {
 
 
 // - DLL
-void SqliteController::libSearch(Compound testCompound, std::vector<Compound> &libCompounds) {
+void SqliteController::libSearch(const LibConfig& libConfig, Compound testCompound, std::vector<Compound> &libCompounds) {
+
+	const int matchLimitNumber = libConfig._matchLimitNumber; //匹配个数上限
+	bool isUniqueCAS = libConfig._isUnique;
 
 	if (!libCompounds.empty()) { libCompounds.clear(); }
 
@@ -105,9 +108,6 @@ void SqliteController::libSearch(Compound testCompound, std::vector<Compound> &l
 	int *compoundIDs = new int[MAX_COMPOUND_ID + 1](); // [0]存放个数
 	//dq_filterCompounds(testCompound, compoundIDs);
 	filterCompounds(testCompound, compoundIDs);
-
-
-
 
 	// 【SQLite Search】
 	std::vector<Peak> peaks;
@@ -136,11 +136,25 @@ void SqliteController::libSearch(Compound testCompound, std::vector<Compound> &l
 	}
 	
 
-	for (size_t j = 0; j < 20 && j != peaks.size(); j++) {
+	bool findRepeat = false;
+	for (size_t j = 0; j < matchLimitNumber && j != peaks.size(); j++) {
 		int compoundID = peaks[j]._compoundID;
 		Compound aCompound = getCompound(compoundID);
 		aCompound._matchDegree = peaks[j]._matchDegree;
-		libCompounds.push_back(aCompound);
+
+		// 剔除重复
+		for (size_t k = 0; k != libCompounds.size() && isUniqueCAS; k++) {
+			if ((aCompound._casNo == libCompounds[k]._casNo) && (aCompound._casNo != "")) {
+				findRepeat = true;
+				break;
+			}
+		}
+
+		if (!findRepeat || !isUniqueCAS) {
+			libCompounds.push_back(aCompound);
+		}
+
+		findRepeat = false;
 	}
 
 
@@ -1224,7 +1238,9 @@ void SqliteController::_filterPeakBy08(const std::vector<FilterPoint> &filterPoi
 void SqliteController::filterCompounds_C(const Compound& testCompound, int *compoundIDs) {
 
 	const int peakCount = testCompound._peakCount;
-	const int filterPeakLimitNumbers = 8; 
+	if (peakCount < FILTER_PEAK_LIMIT_TIMES) { return; }
+
+	const int filterPeakLimitNumbers = FILTER_PEAK_LIMIT_TIMES; 
 	std::string strPeakData = testCompound._peakData;
 	std::vector<FilterPoint> unknownPeakPoints; 
 	unknownPeakPoints.resize(peakCount);

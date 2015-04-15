@@ -40,7 +40,7 @@ public:
 
 
 	//dll½Ó¿Ú
-	void SqliteController::libSearch(Compound testCompound, std::vector<Compound> &libCompounds);
+	void SqliteController::libSearch(const LibConfig& libConfig, Compound testCompound, std::vector<Compound> &libCompounds);
 
 
 	// Ô¤

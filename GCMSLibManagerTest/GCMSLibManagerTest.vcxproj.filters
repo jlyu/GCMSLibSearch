@@ -38,6 +38,9 @@
     <ClInclude Include="Resource.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="..\GCMSLibManager\Compound.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
     <ClInclude Include="..\GCMSLibManager\GCMSLibManager.h">
       <Filter>头文件</Filter>
     </ClInclude>
